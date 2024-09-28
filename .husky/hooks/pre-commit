@@ -1,0 +1,4 @@
+#!/bin/sh
+#!/bin/sh
+golangci-lint run
+git add .

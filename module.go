@@ -37,7 +37,10 @@ func ForRoot(opt Options) core.Module {
 		fmt.Println("Migrated successful")
 
 		sqlModule := module.New(core.NewModuleOptions{})
-		sqlModule.NewProvider(conn, ConnectDB)
+		sqlModule.NewProvider(core.ProviderOptions{
+			Name:  ConnectDB,
+			Value: conn,
+		})
 		sqlModule.Export(ConnectDB)
 
 		return sqlModule
