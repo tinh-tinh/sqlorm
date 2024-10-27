@@ -1,6 +1,7 @@
 package sqlorm
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,15 +11,19 @@ import (
 	"github.com/tinh-tinh/tinhtinh/core"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func Test_Module(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest()
+	})
 	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
 		Model `gorm:"embedded"`
 		Name  string `gorm:"type:varchar(255);not null"`
-		Email string `gorm:"type:varchar(255);not null;unique"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 	type UserService struct {
 		DB *gorm.DB
@@ -111,4 +116,40 @@ func Test_Module(t *testing.T) {
 	resp, err = testClient.Get(testServer.URL + "/api/users")
 	require.Nil(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func createDatabaseForTest() {
+	connStr := "host=localhost user=postgres password=postgres port=5432 dbname=postgres sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent)})
+	if err != nil {
+		panic(err)
+	}
+
+	dbName := "test"
+	// check if db exists
+	stmt := fmt.Sprintf("SELECT * FROM pg_database WHERE datname = '%s';", dbName)
+	rs := db.Raw(stmt)
+	if rs.Error != nil {
+		panic(rs.Error)
+	}
+
+	// if not create it
+	var rec = make(map[string]interface{})
+	if rs.Find(rec); len(rec) == 0 {
+		stmt := fmt.Sprintf("CREATE DATABASE %s;", dbName)
+		if rs := db.Exec(stmt); rs.Error != nil {
+			panic(rs.Error)
+		}
+
+		// close db connection
+		sql, err := db.DB()
+		defer func() {
+			_ = sql.Close()
+		}()
+		if err != nil {
+			panic(err)
+		}
+	}
 }
