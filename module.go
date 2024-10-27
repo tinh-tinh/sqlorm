@@ -47,6 +47,10 @@ func ForRoot(opt Options) core.Module {
 	}
 }
 
-func InjectGorm(module *core.DynamicModule) *gorm.DB {
-	return module.Ref(ConnectDB).(*gorm.DB)
+func Inject(module *core.DynamicModule) *gorm.DB {
+	db, ok := module.Ref(ConnectDB).(*gorm.DB)
+	if !ok {
+		return nil
+	}
+	return db
 }
