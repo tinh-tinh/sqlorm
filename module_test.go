@@ -16,7 +16,7 @@ import (
 
 func Test_Module(t *testing.T) {
 	require.NotPanics(t, func() {
-		createDatabaseForTest()
+		createDatabaseForTest("test")
 	})
 	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
@@ -101,6 +101,9 @@ func Test_Module(t *testing.T) {
 		return module
 	}
 
+	connect := Inject(appModule())
+	require.NotNil(t, connect)
+
 	app := core.CreateFactory(appModule)
 	app.SetGlobalPrefix("/api")
 
@@ -118,7 +121,7 @@ func Test_Module(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-func createDatabaseForTest() {
+func createDatabaseForTest(dbName string) {
 	connStr := "host=localhost user=postgres password=postgres port=5432 dbname=postgres sslmode=disable TimeZone=Asia/Shanghai"
 
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
@@ -127,7 +130,6 @@ func createDatabaseForTest() {
 		panic(err)
 	}
 
-	dbName := "test"
 	// check if db exists
 	stmt := fmt.Sprintf("SELECT * FROM pg_database WHERE datname = '%s';", dbName)
 	rs := db.Raw(stmt)
