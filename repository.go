@@ -2,6 +2,7 @@ package sqlorm
 
 import (
 	"reflect"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -49,6 +50,9 @@ func MapOne[M any](data interface{}) *M {
 			mapper, ok := data.(map[string]interface{})
 			if ok {
 				val := mapper[key]
+				if val == nil {
+					val = mapper[strings.ToLower(key)]
+				}
 				if val != nil {
 					ct.Field(i).Set(reflect.ValueOf(val))
 				}

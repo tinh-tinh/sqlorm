@@ -120,7 +120,7 @@ func Test_Map(t *testing.T) {
 		{"Name": "abc", "Haha": "haha", "Hihi": "hihi"},
 		{"Name": "def", "Haha": "haha", "Hihi": "hihi"},
 		{"Name": "ghi", "Haha": "haha", "Hihi": "hihi"},
-		{"Name": "jkl", "Haha": "haha", "Hihi": "hihi"},
+		{"name": "jkl", "Haha": "haha", "Hihi": "hihi"},
 	}
 
 	lists2 := MapMany[Todo](input2)
