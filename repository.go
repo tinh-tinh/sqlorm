@@ -11,24 +11,6 @@ type Repository[M any] struct {
 	DB *gorm.DB
 }
 
-func (repo *Repository[M]) Create(val interface{}) (*M, error) {
-	input := MapOne[M](val)
-	result := repo.DB.Create(input)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return input, nil
-}
-
-func (repo *Repository[M]) BatchCreate(val interface{}) ([]*M, error) {
-	input := MapMany[M](val)
-	result := repo.DB.Create(input)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return input, nil
-}
-
 func MapOne[M any](data interface{}) *M {
 	var model M
 	if data == nil {
