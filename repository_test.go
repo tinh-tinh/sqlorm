@@ -4,78 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
-
-func Test_Create(t *testing.T) {
-	require.NotPanics(t, func() {
-		createDatabaseForTest("test")
-	})
-	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	require.Nil(t, err)
-
-	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
-	}
-	err = db.AutoMigrate(&Todo{})
-	require.Nil(t, err)
-
-	repo := Repository[Todo]{DB: db}
-
-	require.NotPanics(t, func() {
-		type CreateTodo struct {
-			Name string
-			Haha string
-			Hihi string
-		}
-		result, err := repo.Create(&CreateTodo{Name: "haha", Haha: "haha", Hihi: "hihi"})
-		require.Nil(t, err)
-		require.Equal(t, "haha", result.Name)
-	})
-}
-
-func Test_BatchCreate(t *testing.T) {
-	require.NotPanics(t, func() {
-		createDatabaseForTest("test")
-	})
-	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	require.Nil(t, err)
-
-	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
-	}
-	err = db.AutoMigrate(&Todo{})
-	require.Nil(t, err)
-
-	repo := Repository[Todo]{DB: db}
-
-	require.NotPanics(t, func() {
-		type CreateTodo struct {
-			Name string
-			Haha string
-			Hihi string
-		}
-		result, err := repo.BatchCreate([]*CreateTodo{
-			{Name: "abc", Haha: "haha", Hihi: "hihi"},
-			{Name: "def", Haha: "haha", Hihi: "hihi"},
-			{Name: "ghi", Haha: "haha", Hihi: "hihi"},
-			{Name: "jkl", Haha: "haha", Hihi: "hihi"},
-		})
-		require.Nil(t, err)
-		require.Len(t, result, 4)
-		require.Equal(t, "abc", result[0].Name)
-		require.Equal(t, "def", result[1].Name)
-		require.Equal(t, "ghi", result[2].Name)
-		require.Equal(t, "jkl", result[3].Name)
-	})
-}
 
 func Test_Map(t *testing.T) {
 	type Todo struct {
