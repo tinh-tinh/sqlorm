@@ -7,6 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func NewRepo[M any]() *Repository[M] {
+	return &Repository[M]{}
+}
+
 type Repository[M any] struct {
 	DB *gorm.DB
 }
