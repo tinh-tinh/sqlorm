@@ -25,52 +25,27 @@ func Test_Module(t *testing.T) {
 		Name  string `gorm:"type:varchar(255);not null"`
 		Email string `gorm:"type:varchar(255);not null"`
 	}
-	type UserService struct {
-		DB *gorm.DB
-	}
-	const USER_SERVICE core.Provide = "user_service"
-
-	userService := func(module *core.DynamicModule) *core.DynamicProvider {
-		provider := module.NewProvider(core.ProviderOptions{
-			Name: USER_SERVICE,
-			Factory: func(param ...interface{}) interface{} {
-				db := param[0].(*gorm.DB)
-
-				return &UserService{DB: db}
-			},
-			Inject: []core.Provide{ConnectDB},
-		})
-
-		return provider
-	}
 
 	userController := func(module *core.DynamicModule) *core.DynamicController {
 		ctrl := module.NewController("users")
-		service, ok := module.Ref(USER_SERVICE).(*UserService)
+		repo := InjectRepository[User](module)
 		ctrl.Post("", func(ctx core.Ctx) error {
-			if !ok {
-				return common.InternalServerException(ctx.Res(), "db error")
-			}
-			result := service.DB.Model(&User{}).Create(&User{Name: "John", Email: "john@gmail.com"})
-			if result.Error != nil {
-				return common.InternalServerException(ctx.Res(), result.Error.Error())
+			result, err := repo.Create(&User{Name: "John", Email: "john@gmail.com"})
+			if err != nil {
+				return common.InternalServerException(ctx.Res(), err.Error())
 			}
 			return ctx.JSON(core.Map{
-				"data": "ok",
+				"data": result,
 			})
 		})
 
 		ctrl.Get("", func(ctx core.Ctx) error {
-			if !ok {
-				return common.InternalServerException(ctx.Res(), "db error")
-			}
-			var users []User
-			result := service.DB.Find(&users)
-			if result.Error != nil {
-				return common.InternalServerException(ctx.Res(), result.Error.Error())
+			result, err := repo.FindAll(nil, FindOptions{})
+			if err != nil {
+				return common.InternalServerException(ctx.Res(), err.Error())
 			}
 			return ctx.JSON(core.Map{
-				"data": "ok",
+				"data": result,
 			})
 		})
 
@@ -80,8 +55,6 @@ func Test_Module(t *testing.T) {
 	userModule := func(module *core.DynamicModule) *core.DynamicModule {
 		mod := module.New(core.NewModuleOptions{
 			Controllers: []core.Controller{userController},
-			Providers:   []core.Provider{userService},
-			Exports:     []core.Provider{userService},
 		})
 
 		return mod
