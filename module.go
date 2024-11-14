@@ -3,8 +3,8 @@ package sqlorm
 import (
 	"fmt"
 
+	"github.com/tinh-tinh/tinhtinh/common"
 	"github.com/tinh-tinh/tinhtinh/core"
-	"github.com/tinh-tinh/tinhtinh/utils"
 	"gorm.io/gorm"
 )
 
@@ -58,7 +58,7 @@ func Inject(module *core.DynamicModule) *gorm.DB {
 
 func InjectRepository[M any](module *core.DynamicModule) *Repository[M] {
 	var model M
-	modelName := core.Provide(utils.GetNameStruct(model))
+	modelName := core.Provide(common.GetStructName(model))
 	data, ok := module.Ref(modelName).(*Repository[M])
 	if data == nil || !ok {
 		repo := Repository[M]{DB: Inject(module)}

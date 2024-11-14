@@ -1,4 +1,4 @@
-package sqlorm
+package sqlorm_test
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinh-tinh/sqlorm"
 	"github.com/tinh-tinh/tinhtinh/common"
 	"github.com/tinh-tinh/tinhtinh/core"
 	"gorm.io/driver/postgres"
@@ -21,14 +22,14 @@ func Test_Module(t *testing.T) {
 	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
-		Email string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
+		Email        string `gorm:"type:varchar(255);not null"`
 	}
 
 	userController := func(module *core.DynamicModule) *core.DynamicController {
 		ctrl := module.NewController("users")
-		repo := InjectRepository[User](module)
+		repo := sqlorm.InjectRepository[User](module)
 		ctrl.Post("", func(ctx core.Ctx) error {
 			result, err := repo.Create(&User{Name: "John", Email: "john@gmail.com"})
 			if err != nil {
@@ -40,7 +41,7 @@ func Test_Module(t *testing.T) {
 		})
 
 		ctrl.Get("", func(ctx core.Ctx) error {
-			result, err := repo.FindAll(nil, FindOptions{})
+			result, err := repo.FindAll(nil, sqlorm.FindOptions{})
 			if err != nil {
 				return common.InternalServerException(ctx.Res(), err.Error())
 			}
@@ -63,7 +64,7 @@ func Test_Module(t *testing.T) {
 	appModule := func() *core.DynamicModule {
 		module := core.NewModule(core.NewModuleOptions{
 			Imports: []core.Module{
-				ForRoot(Options{
+				sqlorm.ForRoot(sqlorm.Options{
 					Dialect: postgres.Open(dsn),
 					Models:  []interface{}{&User{}},
 				}),
@@ -74,7 +75,7 @@ func Test_Module(t *testing.T) {
 		return module
 	}
 
-	connect := Inject(appModule())
+	connect := sqlorm.Inject(appModule())
 	require.NotNil(t, connect)
 
 	app := core.CreateFactory(appModule)
