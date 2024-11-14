@@ -1,9 +1,10 @@
-package sqlorm
+package sqlorm_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinh-tinh/sqlorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,13 +13,13 @@ func Test_Create(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 
 	require.NotPanics(t, func() {
 		type CreateTodo struct {
@@ -36,13 +37,13 @@ func Test_BatchCreate(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 
 	require.NotPanics(t, func() {
 		type CreateTodo struct {
@@ -69,13 +70,13 @@ func Test_Update(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 	require.NotPanics(t, func() {
 		type CreateTodo struct {
 			Name string
@@ -101,13 +102,13 @@ func Test_UpdateMany(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 	require.NotPanics(t, func() {
 		err := repo.UpdateMany(map[string]interface{}{"name": "haha"}, map[string]interface{}{"name": "lulu"})
 		require.Nil(t, err)
@@ -121,13 +122,13 @@ func Test_Delete(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 	require.NotPanics(t, func() {
 		type CreateTodo struct {
 			Name string
@@ -150,13 +151,13 @@ func Test_DeleteMany(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Todo]{DB: db}
 	require.NotPanics(t, func() {
 		err := repo.DeleteMany(map[string]interface{}{"name": "lulu"})
 		require.Nil(t, err)

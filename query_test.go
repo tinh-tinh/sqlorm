@@ -1,9 +1,10 @@
-package sqlorm
+package sqlorm_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tinh-tinh/sqlorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,14 +19,14 @@ func Test_FindMany(t *testing.T) {
 	require.Nil(t, err)
 
 	type Todo struct {
-		Model `gorm:"embedded"`
-		Name  string `gorm:"type:varchar(255);not null"`
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
 	}
 	err = db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
 
-	repo := Repository[Todo]{DB: db}
-	result, err := repo.FindAll(map[string]interface{}{"name": "haha"}, FindOptions{
+	repo := sqlorm.Repository[Todo]{DB: db}
+	result, err := repo.FindAll(map[string]interface{}{"name": "haha"}, sqlorm.FindOptions{
 		Order:  []string{"name desc"},
 		Select: []string{"id", "name"},
 		Limit:  1,
@@ -36,7 +37,7 @@ func Test_FindMany(t *testing.T) {
 		require.Equal(t, "haha", result[0].Name)
 	}
 
-	result1, err := repo.FindOne(map[string]interface{}{"name": "haha"}, FindOneOptions{
+	result1, err := repo.FindOne(map[string]interface{}{"name": "haha"}, sqlorm.FindOneOptions{
 		Order: []string{"name desc"},
 	})
 	require.Nil(t, err)
@@ -45,7 +46,7 @@ func Test_FindMany(t *testing.T) {
 	}
 
 	if result1 != nil {
-		result2, err := repo.FindByID(result1.ID.String(), FindOneOptions{
+		result2, err := repo.FindByID(result1.ID.String(), sqlorm.FindOneOptions{
 			Select: []string{"name"},
 		})
 		require.Nil(t, err)
@@ -54,7 +55,7 @@ func Test_FindMany(t *testing.T) {
 		}
 	}
 
-	result3, err := repo.FindOne(map[string]interface{}{"name": "hjbhjgbhjvghjvgh"}, FindOneOptions{
+	result3, err := repo.FindOne(map[string]interface{}{"name": "hjbhjgbhjvghjvgh"}, sqlorm.FindOneOptions{
 		Select: []string{"name"},
 	})
 	require.Nil(t, err)
