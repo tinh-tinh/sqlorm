@@ -91,23 +91,26 @@ func ForRoot(opt Options) core.Module {
 	}
 }
 
-func ForFeature[M any]() core.Module {
+func ForFeature(models ...sqlorm.RepoCommon) core.Module {
 	return func(module *core.DynamicModule) *core.DynamicModule {
 		modelModule := module.New(core.NewModuleOptions{})
 
-		var model M
-		modelName := core.Provide(common.GetStructName(model))
-		modelModule.NewProvider(core.ProviderOptions{
-			Scope: core.Request,
-			Name:  modelName,
-			Factory: func(param ...interface{}) interface{} {
-				connect := param[0].(*gorm.DB)
-				repo := sqlorm.Repository[M]{DB: connect}
-				return &repo
-			},
-			Inject: []core.Provide{CONNECT_TENANCY},
-		})
-		modelModule.Export(modelName)
+		for _, v := range models {
+			name := sqlorm.GetRepoName(v.GetName())
+			modelModule.NewProvider(core.ProviderOptions{
+				Scope: core.Request,
+				Name:  name,
+				Factory: func(param ...interface{}) interface{} {
+					connect := param[0].(*gorm.DB)
+					if connect != nil {
+						v.SetDB(connect)
+					}
+					return v
+				},
+				Inject: []core.Provide{CONNECT_TENANCY},
+			})
+			modelModule.Export(name)
+		}
 
 		return modelModule
 	}
@@ -115,7 +118,7 @@ func ForFeature[M any]() core.Module {
 
 func InjectRepository[M any](module *core.DynamicModule) *sqlorm.Repository[M] {
 	var model M
-	modelName := core.Provide(common.GetStructName(model))
+	modelName := core.Provide(sqlorm.GetRepoName(common.GetStructName(model)))
 	data, ok := module.Ref(modelName).(*sqlorm.Repository[M])
 	if data == nil || !ok {
 		return nil

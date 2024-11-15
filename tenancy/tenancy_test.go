@@ -37,7 +37,7 @@ func Test_Tenant(t *testing.T) {
 
 	userModule := func(module *core.DynamicModule) *core.DynamicModule {
 		userMod := module.New(core.NewModuleOptions{
-			Imports:     []core.Module{tenancy.ForFeature[User]()},
+			Imports:     []core.Module{tenancy.ForFeature(sqlorm.NewRepo(User{}))},
 			Controllers: []core.Controller{userController},
 		})
 		return userMod
@@ -74,7 +74,7 @@ func Test_Tenant(t *testing.T) {
 	req, err := http.NewRequest("POST", testServer.URL+"/app/users", nil)
 	require.Nil(t, err)
 
-	req.Header.Set("x-tenant-id", "anc")
+	req.Header.Set("x-tenant-id", "abc")
 
 	resp, err := testClient.Do(req)
 	require.Nil(t, err)
