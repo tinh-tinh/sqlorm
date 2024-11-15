@@ -30,6 +30,7 @@ func Test_Module(t *testing.T) {
 	userController := func(module *core.DynamicModule) *core.DynamicController {
 		ctrl := module.NewController("users")
 		repo := sqlorm.InjectRepository[User](module)
+
 		ctrl.Post("", func(ctx core.Ctx) error {
 			result, err := repo.Create(&User{Name: "John", Email: "john@gmail.com"})
 			if err != nil {
@@ -55,6 +56,7 @@ func Test_Module(t *testing.T) {
 
 	userModule := func(module *core.DynamicModule) *core.DynamicModule {
 		mod := module.New(core.NewModuleOptions{
+			Imports:     []core.Module{sqlorm.ForFeature(sqlorm.NewRepo(User{}))},
 			Controllers: []core.Controller{userController},
 		})
 

@@ -16,7 +16,7 @@ type Options struct {
 
 const ConnectDB core.Provide = "ConnectDB"
 
-func ForRoot(opt Options) core.Module {
+func ForRoot(opt Options, configs ...gorm.Option) core.Module {
 	return func(module *core.DynamicModule) *core.DynamicModule {
 		var dialector gorm.Dialector
 		if opt.Factory != nil {
@@ -24,7 +24,7 @@ func ForRoot(opt Options) core.Module {
 		} else {
 			dialector = opt.Dialect
 		}
-		conn, err := gorm.Open(dialector, &gorm.Config{})
+		conn, err := gorm.Open(dialector, configs...)
 		if err != nil {
 			panic(err)
 		}
@@ -58,17 +58,41 @@ func Inject(module *core.DynamicModule) *gorm.DB {
 
 func InjectRepository[M any](module *core.DynamicModule) *Repository[M] {
 	var model M
-	modelName := core.Provide(common.GetStructName(model))
+	modelName := core.Provide(fmt.Sprintf("%sRepo", common.GetStructName(model)))
 	data, ok := module.Ref(modelName).(*Repository[M])
-	if data == nil || !ok {
-		repo := Repository[M]{DB: Inject(module)}
-		module.NewProvider(core.ProviderOptions{
-			Name:  modelName,
-			Value: &repo,
-		})
-
-		return &repo
+	fmt.Println(data)
+	if !ok {
+		return nil
 	}
 
 	return data
+}
+
+func ForFeature(val ...RepoCommon) core.Module {
+	return func(module *core.DynamicModule) *core.DynamicModule {
+		modelModule := module.New(core.NewModuleOptions{})
+
+		for _, v := range val {
+			name := GetRepoName(v.GetName())
+
+			modelModule.NewProvider(core.ProviderOptions{
+				Name: name,
+				Factory: func(param ...interface{}) interface{} {
+					connect := param[0].(*gorm.DB)
+					if connect != nil {
+						v.SetDB(connect)
+					}
+					return v
+				},
+				Inject: []core.Provide{ConnectDB},
+			})
+			modelModule.Export(name)
+		}
+
+		return modelModule
+	}
+}
+
+func GetRepoName(name string) core.Provide {
+	return core.Provide(fmt.Sprintf("%sRepo", name))
 }

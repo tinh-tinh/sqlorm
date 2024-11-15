@@ -4,15 +4,30 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/tinh-tinh/tinhtinh/common"
 	"gorm.io/gorm"
 )
 
-func NewRepo[M any]() *Repository[M] {
+type RepoCommon interface {
+	SetDB(db *gorm.DB)
+	GetName() string
+}
+
+func NewRepo[M any](model M) *Repository[M] {
 	return &Repository[M]{}
 }
 
 type Repository[M any] struct {
 	DB *gorm.DB
+}
+
+func (r *Repository[M]) GetName() string {
+	var model M
+	return common.GetStructName(model)
+}
+
+func (r *Repository[M]) SetDB(db *gorm.DB) {
+	r.DB = db
 }
 
 func MapOne[M any](data interface{}) *M {
