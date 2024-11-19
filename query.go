@@ -18,22 +18,27 @@ type FindOptions struct {
 	Offset int
 }
 
-func (repo *Repository[M]) FindAll(where interface{}, options FindOptions) ([]M, error) {
+func (repo *Repository[M]) FindAll(where interface{}, options ...FindOptions) ([]M, error) {
 	var model []M
 	tx := repo.DB
-	if len(options.Select) > 0 && options.Select != nil {
-		tx = tx.Select(options.Select)
+
+	var opt FindOptions
+	if len(options) > 0 {
+		opt = options[0]
 	}
-	if len(options.Order) > 0 && options.Order != nil {
-		for _, order := range options.Order {
+	if len(opt.Select) > 0 && opt.Select != nil {
+		tx = tx.Select(opt.Select)
+	}
+	if len(opt.Order) > 0 && opt.Order != nil {
+		for _, order := range opt.Order {
 			tx = tx.Order(order)
 		}
 	}
-	if options.Limit > 0 {
-		tx = tx.Limit(options.Limit)
+	if opt.Limit > 0 {
+		tx = tx.Limit(opt.Limit)
 	}
-	if options.Offset > 0 {
-		tx = tx.Offset(options.Offset)
+	if opt.Offset > 0 {
+		tx = tx.Offset(opt.Offset)
 	}
 	result := tx.Where(where).Find(&model)
 	if result.Error != nil {
@@ -42,14 +47,19 @@ func (repo *Repository[M]) FindAll(where interface{}, options FindOptions) ([]M,
 	return model, nil
 }
 
-func (repo *Repository[M]) FindOne(where interface{}, options FindOneOptions) (*M, error) {
+func (repo *Repository[M]) FindOne(where interface{}, options ...FindOneOptions) (*M, error) {
 	var model M
 	tx := repo.DB
-	if options.Select != nil {
-		tx = tx.Select(options.Select)
+
+	var opt FindOneOptions
+	if len(options) > 0 {
+		opt = options[0]
 	}
-	if options.Order != nil {
-		for _, order := range options.Order {
+	if opt.Select != nil {
+		tx = tx.Select(opt.Select)
+	}
+	if opt.Order != nil {
+		for _, order := range opt.Order {
 			tx = tx.Order(order)
 		}
 	}
