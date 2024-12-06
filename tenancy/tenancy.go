@@ -116,10 +116,10 @@ func ForFeature(models ...sqlorm.RepoCommon) core.Module {
 	}
 }
 
-func InjectRepository[M any](module *core.DynamicModule) *sqlorm.Repository[M] {
+func InjectRepository[M any](module *core.DynamicModule, ctx core.Ctx) *sqlorm.Repository[M] {
 	var model M
 	modelName := core.Provide(sqlorm.GetRepoName(common.GetStructName(model)))
-	data, ok := module.Ref(modelName).(*sqlorm.Repository[M])
+	data, ok := module.Ref(modelName, ctx).(*sqlorm.Repository[M])
 	if data == nil || !ok {
 		return nil
 	}
