@@ -22,7 +22,7 @@ func Test_Tenant(t *testing.T) {
 	userController := func(module *core.DynamicModule) *core.DynamicController {
 		ctrl := module.NewController("users")
 		ctrl.Post("", func(ctx core.Ctx) error {
-			repo := tenancy.InjectRepository[User](module)
+			repo := tenancy.InjectRepository[User](module, ctx)
 			result, err := repo.Create(&User{Name: "John", Email: "john@gmail.com"})
 			if err != nil {
 				return common.InternalServerException(ctx.Res(), err.Error())
