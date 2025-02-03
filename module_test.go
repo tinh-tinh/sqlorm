@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tinh-tinh/sqlorm"
-	"github.com/tinh-tinh/tinhtinh/common"
-	"github.com/tinh-tinh/tinhtinh/core"
+	"github.com/tinh-tinh/sqlorm/v2"
+	"github.com/tinh-tinh/tinhtinh/v2/common"
+	"github.com/tinh-tinh/tinhtinh/v2/core"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,7 +27,7 @@ func Test_Module(t *testing.T) {
 		Email        string `gorm:"type:varchar(255);not null"`
 	}
 
-	userController := func(module *core.DynamicModule) *core.DynamicController {
+	userController := func(module core.Module) core.Controller {
 		ctrl := module.NewController("users")
 		repo := sqlorm.InjectRepository[User](module)
 
@@ -54,18 +54,18 @@ func Test_Module(t *testing.T) {
 		return ctrl
 	}
 
-	userModule := func(module *core.DynamicModule) *core.DynamicModule {
+	userModule := func(module core.Module) core.Module {
 		mod := module.New(core.NewModuleOptions{
-			Imports:     []core.Module{sqlorm.ForFeature(sqlorm.NewRepo(User{}))},
-			Controllers: []core.Controller{userController},
+			Imports:     []core.Modules{sqlorm.ForFeature(sqlorm.NewRepo(User{}))},
+			Controllers: []core.Controllers{userController},
 		})
 
 		return mod
 	}
 
-	appModule := func() *core.DynamicModule {
+	appModule := func() core.Module {
 		module := core.NewModule(core.NewModuleOptions{
-			Imports: []core.Module{
+			Imports: []core.Modules{
 				sqlorm.ForRoot(sqlorm.Options{
 					Dialect: postgres.Open(dsn),
 					Models:  []interface{}{&User{}},
@@ -109,7 +109,7 @@ func Test_ModuleFactory(t *testing.T) {
 		Email        string `gorm:"type:varchar(255);not null"`
 	}
 
-	userController := func(module *core.DynamicModule) *core.DynamicController {
+	userController := func(module core.Module) core.Controller {
 		ctrl := module.NewController("users")
 		repo := sqlorm.InjectRepository[User](module)
 
@@ -136,20 +136,20 @@ func Test_ModuleFactory(t *testing.T) {
 		return ctrl
 	}
 
-	userModule := func(module *core.DynamicModule) *core.DynamicModule {
+	userModule := func(module core.Module) core.Module {
 		mod := module.New(core.NewModuleOptions{
-			Imports:     []core.Module{sqlorm.ForFeature(sqlorm.NewRepo(User{}))},
-			Controllers: []core.Controller{userController},
+			Imports:     []core.Modules{sqlorm.ForFeature(sqlorm.NewRepo(User{}))},
+			Controllers: []core.Controllers{userController},
 		})
 
 		return mod
 	}
 
-	appModule := func() *core.DynamicModule {
+	appModule := func() core.Module {
 		module := core.NewModule(core.NewModuleOptions{
-			Imports: []core.Module{
+			Imports: []core.Modules{
 				sqlorm.ForRoot(sqlorm.Options{
-					Factory: func(module *core.DynamicModule) gorm.Dialector {
+					Factory: func(module core.Module) gorm.Dialector {
 						return postgres.Open(dsn)
 					},
 					Models: []interface{}{&User{}},

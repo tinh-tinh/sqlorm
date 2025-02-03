@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tinh-tinh/sqlorm"
-	"github.com/tinh-tinh/tinhtinh/common"
-	"github.com/tinh-tinh/tinhtinh/core"
+	"github.com/tinh-tinh/sqlorm/v2"
+	"github.com/tinh-tinh/tinhtinh/v2/common"
+	"github.com/tinh-tinh/tinhtinh/v2/core"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -25,15 +25,15 @@ const (
 
 type Options struct {
 	Connect     ConnectOptions
-	Factory     func(module *core.DynamicModule) ConnectOptions
+	Factory     func(module core.Module) ConnectOptions
 	GetTenantID func(r *http.Request) string
 	Models      []interface{}
 }
 
 type ConnectMapper map[string]*gorm.DB
 
-func ForRoot(opt Options) core.Module {
-	return func(module *core.DynamicModule) *core.DynamicModule {
+func ForRoot(opt Options) core.Modules {
+	return func(module core.Module) core.Module {
 		var connectOpt ConnectOptions
 		if opt.Factory != nil {
 			connectOpt = opt.Factory(module)
@@ -91,8 +91,8 @@ func ForRoot(opt Options) core.Module {
 	}
 }
 
-func ForFeature(models ...sqlorm.RepoCommon) core.Module {
-	return func(module *core.DynamicModule) *core.DynamicModule {
+func ForFeature(models ...sqlorm.RepoCommon) core.Modules {
+	return func(module core.Module) core.Module {
 		modelModule := module.New(core.NewModuleOptions{})
 
 		for _, v := range models {
@@ -116,7 +116,7 @@ func ForFeature(models ...sqlorm.RepoCommon) core.Module {
 	}
 }
 
-func InjectRepository[M any](module *core.DynamicModule, ctx core.Ctx) *sqlorm.Repository[M] {
+func InjectRepository[M any](module core.Module, ctx core.Ctx) *sqlorm.Repository[M] {
 	var model M
 	modelName := core.Provide(sqlorm.GetRepoName(common.GetStructName(model)))
 	data, ok := module.Ref(modelName, ctx).(*sqlorm.Repository[M])

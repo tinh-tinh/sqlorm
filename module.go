@@ -3,21 +3,21 @@ package sqlorm
 import (
 	"fmt"
 
-	"github.com/tinh-tinh/tinhtinh/common"
-	"github.com/tinh-tinh/tinhtinh/core"
+	"github.com/tinh-tinh/tinhtinh/v2/common"
+	"github.com/tinh-tinh/tinhtinh/v2/core"
 	"gorm.io/gorm"
 )
 
 type Options struct {
 	Dialect gorm.Dialector
-	Factory func(module *core.DynamicModule) gorm.Dialector
+	Factory func(module core.Module) gorm.Dialector
 	Models  []interface{}
 }
 
 const ConnectDB core.Provide = "ConnectDB"
 
-func ForRoot(opt Options, configs ...gorm.Option) core.Module {
-	return func(module *core.DynamicModule) *core.DynamicModule {
+func ForRoot(opt Options, configs ...gorm.Option) core.Modules {
+	return func(module core.Module) core.Module {
 		var dialector gorm.Dialector
 		if opt.Factory != nil {
 			dialector = opt.Factory(module)
@@ -48,7 +48,7 @@ func ForRoot(opt Options, configs ...gorm.Option) core.Module {
 	}
 }
 
-func Inject(module *core.DynamicModule) *gorm.DB {
+func Inject(module core.Module) *gorm.DB {
 	db, ok := module.Ref(ConnectDB).(*gorm.DB)
 	if !ok {
 		return nil
@@ -56,7 +56,7 @@ func Inject(module *core.DynamicModule) *gorm.DB {
 	return db
 }
 
-func InjectRepository[M any](module *core.DynamicModule) *Repository[M] {
+func InjectRepository[M any](module core.Module) *Repository[M] {
 	var model M
 	modelName := core.Provide(fmt.Sprintf("%sRepo", common.GetStructName(model)))
 	data, ok := module.Ref(modelName).(*Repository[M])
@@ -68,8 +68,8 @@ func InjectRepository[M any](module *core.DynamicModule) *Repository[M] {
 	return data
 }
 
-func ForFeature(val ...RepoCommon) core.Module {
-	return func(module *core.DynamicModule) *core.DynamicModule {
+func ForFeature(val ...RepoCommon) core.Modules {
+	return func(module core.Module) core.Module {
 		modelModule := module.New(core.NewModuleOptions{})
 
 		for _, v := range val {
