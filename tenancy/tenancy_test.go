@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tinh-tinh/sqlorm"
-	"github.com/tinh-tinh/sqlorm/tenancy"
-	"github.com/tinh-tinh/tinhtinh/common"
-	"github.com/tinh-tinh/tinhtinh/core"
+	"github.com/tinh-tinh/sqlorm/v2"
+	"github.com/tinh-tinh/sqlorm/v2/tenancy"
+	"github.com/tinh-tinh/tinhtinh/v2/common"
+	"github.com/tinh-tinh/tinhtinh/v2/core"
 )
 
 func Test_Tenant(t *testing.T) {
@@ -19,7 +19,7 @@ func Test_Tenant(t *testing.T) {
 		Email        string `gorm:"type:varchar(255);not null"`
 	}
 
-	userController := func(module *core.DynamicModule) *core.DynamicController {
+	userController := func(module core.Module) core.Controller {
 		ctrl := module.NewController("users")
 		ctrl.Post("", func(ctx core.Ctx) error {
 			repo := tenancy.InjectRepository[User](module, ctx)
@@ -35,17 +35,17 @@ func Test_Tenant(t *testing.T) {
 		return ctrl
 	}
 
-	userModule := func(module *core.DynamicModule) *core.DynamicModule {
+	userModule := func(module core.Module) core.Module {
 		userMod := module.New(core.NewModuleOptions{
-			Imports:     []core.Module{tenancy.ForFeature(sqlorm.NewRepo(User{}))},
-			Controllers: []core.Controller{userController},
+			Imports:     []core.Modules{tenancy.ForFeature(sqlorm.NewRepo(User{}))},
+			Controllers: []core.Controllers{userController},
 		})
 		return userMod
 	}
 
-	appModule := func() *core.DynamicModule {
+	appModule := func() core.Module {
 		appModule := core.NewModule(core.NewModuleOptions{
-			Imports: []core.Module{
+			Imports: []core.Modules{
 				tenancy.ForRoot(tenancy.Options{
 					Connect: tenancy.ConnectOptions{
 						Host:     "localhost",

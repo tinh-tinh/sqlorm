@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tinh-tinh/sqlorm"
+	"github.com/tinh-tinh/sqlorm/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

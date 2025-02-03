@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/tinh-tinh/tinhtinh/common"
+	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"gorm.io/gorm"
 )
 
