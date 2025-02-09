@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.9.0
-	github.com/tinh-tinh/tinhtinh/v2 v2.0.0-beta.7
+	github.com/tinh-tinh/tinhtinh/v2 v2.0.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.12
 )
