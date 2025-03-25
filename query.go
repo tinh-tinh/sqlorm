@@ -3,7 +3,7 @@ package sqlorm
 import "gorm.io/gorm"
 
 type Where interface {
-	string | map[string]interface{}
+	string | map[string]interface{} | []interface{}
 }
 
 type FindOneOptions struct {
@@ -75,4 +75,40 @@ func (repo *Repository[M]) FindOne(where interface{}, options ...FindOneOptions)
 
 func (repo *Repository[M]) FindByID(id string, options FindOneOptions) (*M, error) {
 	return repo.FindOne(map[string]interface{}{"id": id}, options)
+}
+
+func (repo *Repository[M]) Count(where interface{}) (int64, error) {
+	var count int64
+	var model M
+	result := repo.DB.Model(&model).Where(where).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
+}
+
+func (repo *Repository[M]) Exist(where interface{}, options ...FindOneOptions) (bool, error) {
+	var model M
+	tx := repo.DB
+
+	var opt FindOneOptions
+	if len(options) > 0 {
+		opt = options[0]
+	}
+	if opt.Select != nil {
+		tx = tx.Select(opt.Select)
+	}
+	if opt.Order != nil {
+		for _, order := range opt.Order {
+			tx = tx.Order(order)
+		}
+	}
+	result := tx.Where(where).First(&model)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, result.Error
+	}
+	return true, nil
 }
