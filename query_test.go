@@ -64,27 +64,26 @@ func Test_FindMany(t *testing.T) {
 
 func Test_Count(t *testing.T) {
 	require.NotPanics(t, func() {
-		createDatabaseForTest("test_count")
+		createDatabaseForTest("test")
 	})
-	dsn := "host=localhost user=postgres password=postgres dbname=test_count port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	require.Nil(t, err)
-	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
-	type Todo struct {
+	type Count struct {
 		sqlorm.Model `gorm:"embedded"`
 		Name         string `gorm:"type:varchar(255);not null"`
 		Status       string `gorm:"type:varchar(50)"`
 		Priority     int    `gorm:"type:int"`
 	}
-	err = db.AutoMigrate(&Todo{})
+	err = db.AutoMigrate(&Count{})
 	require.Nil(t, err)
 
-	repo := sqlorm.Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Count]{DB: db}
 
 	// Create test data
-	todos := []Todo{
+	todos := []Count{
 		{Name: "Test Todo 1", Status: "active", Priority: 1},
 		{Name: "Test Todo 2", Status: "active", Priority: 2},
 		{Name: "Test Todo 3", Status: "completed", Priority: 1},
@@ -135,7 +134,7 @@ func Test_Count(t *testing.T) {
 	require.Equal(t, int64(1), count)
 
 	// Reset test data by deleting all records
-	err = db.Unscoped().Where("1 = 1").Delete(&Todo{}).Error
+	err = db.Unscoped().Where("1 = 1").Delete(&Count{}).Error
 	require.Nil(t, err)
 
 	// Verify database is empty
@@ -146,27 +145,26 @@ func Test_Count(t *testing.T) {
 
 func Test_Exist(t *testing.T) {
 	require.NotPanics(t, func() {
-		createDatabaseForTest("test_exist")
+		createDatabaseForTest("test")
 	})
-	dsn := "host=localhost user=postgres password=postgres dbname=test_exist port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	require.Nil(t, err)
-	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
-	type Todo struct {
+	type Exists struct {
 		sqlorm.Model `gorm:"embedded"`
 		Name         string `gorm:"type:varchar(255);not null"`
 		Status       string `gorm:"type:varchar(50)"`
 		Priority     int    `gorm:"type:int"`
 	}
-	err = db.AutoMigrate(&Todo{})
+	err = db.AutoMigrate(&Exists{})
 	require.Nil(t, err)
 
-	repo := sqlorm.Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[Exists]{DB: db}
 
 	// Create test data
-	todos := []Todo{
+	todos := []Exists{
 		{Name: "Test Todo 1", Status: "active", Priority: 1},
 		{Name: "Test Todo 2", Status: "active", Priority: 2},
 		{Name: "Test Todo 3", Status: "completed", Priority: 1},
@@ -213,11 +211,78 @@ func Test_Exist(t *testing.T) {
 	require.True(t, exists)
 
 	// Reset test data by deleting all records
-	err = db.Unscoped().Where("1 = 1").Delete(&Todo{}).Error
+	err = db.Unscoped().Where("1 = 1").Delete(&Exists{}).Error
 	require.Nil(t, err)
 
 	// Verify database is empty
 	count, err := repo.Count(nil)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), count)
+}
+
+func Test_SoftDelete(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	require.Nil(t, err)
+
+	type SoftDelete struct {
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
+	}
+
+	repo := sqlorm.Repository[SoftDelete]{DB: db}
+	// Create test records
+	records := []SoftDelete{
+		{Name: "Test Record 1"},
+		{Name: "Test Record 2"},
+		{Name: "Test Record 3"},
+	}
+	err = db.AutoMigrate(&SoftDelete{})
+	require.Nil(t, err)
+
+	// Check if database is empty before creating test data
+	existingCount, err := repo.Count(nil)
+	if err != nil || existingCount == 0 {
+		// Only create test data if database is empty
+		for _, record := range records {
+			err := db.Create(&record).Error
+			require.Nil(t, err)
+		}
+	}
+
+	// Test soft delete
+	err = repo.DeleteOne(map[string]interface{}{"name": "Test Record 1"})
+	require.Nil(t, err)
+
+	// Verify record is soft deleted (not found in normal query)
+	exists, err := repo.Exist(map[string]interface{}{"name": "Test Record 1"})
+	require.Nil(t, err)
+	require.False(t, exists)
+
+	// Verify record exists when unscoped
+	var record SoftDelete
+	err = db.Unscoped().Where("name = ?", "Test Record 1").First(&record).Error
+	require.Nil(t, err)
+	require.NotNil(t, record.DeletedAt)
+
+	// Test find with unscoped option
+	result, err := repo.FindOne(map[string]interface{}{"name": "Test Record 1"}, sqlorm.FindOneOptions{
+		WithDeleted: true,
+	})
+	require.Nil(t, err)
+	require.NotNil(t, result)
+
+	// Reset test data by deleting all records
+	err = db.Unscoped().Where("1 = 1").Delete(&SoftDelete{}).Error
+	require.Nil(t, err)
+
+	// Verify database is empty
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), count)
+
 }
