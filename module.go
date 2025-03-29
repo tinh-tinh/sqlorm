@@ -48,18 +48,18 @@ func ForRoot(opt Options, configs ...gorm.Option) core.Modules {
 	}
 }
 
-func Inject(module core.Module) *gorm.DB {
-	db, ok := module.Ref(ConnectDB).(*gorm.DB)
+func Inject(ref core.RefProvider) *gorm.DB {
+	db, ok := ref.Ref(ConnectDB).(*gorm.DB)
 	if !ok {
 		return nil
 	}
 	return db
 }
 
-func InjectRepository[M any](module core.Module) *Repository[M] {
+func InjectRepository[M any](ref core.RefProvider) *Repository[M] {
 	var model M
 	modelName := core.Provide(fmt.Sprintf("%sRepo", common.GetStructName(model)))
-	data, ok := module.Ref(modelName).(*Repository[M])
+	data, ok := ref.Ref(modelName).(*Repository[M])
 	fmt.Println(data)
 	if !ok {
 		return nil

@@ -7,15 +7,17 @@ type Where interface {
 }
 
 type FindOneOptions struct {
-	Select []string
-	Order  []string
+	Select      []string
+	Order       []string
+	WithDeleted bool
 }
 
 type FindOptions struct {
-	Select []string
-	Order  []string
-	Limit  int
-	Offset int
+	Select      []string
+	Order       []string
+	WithDeleted bool
+	Limit       int
+	Offset      int
 }
 
 func (repo *Repository[M]) FindAll(where interface{}, options ...FindOptions) ([]M, error) {
@@ -40,6 +42,9 @@ func (repo *Repository[M]) FindAll(where interface{}, options ...FindOptions) ([
 	if opt.Offset > 0 {
 		tx = tx.Offset(opt.Offset)
 	}
+	if opt.WithDeleted {
+		tx = tx.Unscoped()
+	}
 	result := tx.Where(where).Find(&model)
 	if result.Error != nil {
 		return nil, result.Error
@@ -63,7 +68,10 @@ func (repo *Repository[M]) FindOne(where interface{}, options ...FindOneOptions)
 			tx = tx.Order(order)
 		}
 	}
-	result := repo.DB.Where(where).First(&model)
+	if opt.WithDeleted {
+		tx = tx.Unscoped()
+	}
+	result := tx.Where(where).First(&model)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil
