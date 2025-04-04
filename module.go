@@ -12,6 +12,7 @@ type Options struct {
 	Dialect gorm.Dialector
 	Factory func(module core.Module) gorm.Dialector
 	Models  []interface{}
+	Sync    bool
 }
 
 const ConnectDB core.Provide = "ConnectDB"
@@ -29,13 +30,13 @@ func ForRoot(opt Options, configs ...gorm.Option) core.Modules {
 			panic(err)
 		}
 		conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
-		fmt.Println("connected to database")
 
-		err = conn.AutoMigrate(opt.Models...)
-		if err != nil {
-			panic(err)
+		if opt.Sync {
+			err = conn.AutoMigrate(opt.Models...)
+			if err != nil {
+				panic(err)
+			}
 		}
-		fmt.Println("Migrated successful")
 
 		sqlModule := module.New(core.NewModuleOptions{})
 		sqlModule.NewProvider(core.ProviderOptions{
@@ -60,7 +61,6 @@ func InjectRepository[M any](ref core.RefProvider) *Repository[M] {
 	var model M
 	modelName := core.Provide(fmt.Sprintf("%sRepo", common.GetStructName(model)))
 	data, ok := ref.Ref(modelName).(*Repository[M])
-	fmt.Println(data)
 	if !ok {
 		return nil
 	}
