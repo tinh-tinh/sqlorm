@@ -178,3 +178,65 @@ func prepareBeforeTest(t *testing.T) *gorm.DB {
 
 	return db
 }
+
+func Test_Increment(t *testing.T) {
+	db := prepareBeforeTest(t)
+
+	type Increment struct {
+		sqlorm.Model `gorm:"embedded"`
+		Count        int `gorm:"type:int;not null;default:0"`
+	}
+	err := db.AutoMigrate(&Increment{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[Increment]{DB: db}
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+
+	if count == 0 {
+		repo.Create(&Increment{Count: 0})
+	}
+
+	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})
+	require.Nil(t, err)
+
+	err = repo.Increment(first.ID.String(), "Count", 1)
+	require.Nil(t, err)
+
+	err = repo.Increment("1", "Count", 1)
+	require.NotNil(t, err)
+
+	err = repo.Increment(first.ID.String(), "Kafka", 1)
+	require.NotNil(t, err)
+}
+
+func Test_Decrement(t *testing.T) {
+	db := prepareBeforeTest(t)
+
+	type Decrement struct {
+		sqlorm.Model `gorm:"embedded"`
+		Count        int `gorm:"type:int;not null;default:0"`
+	}
+	err := db.AutoMigrate(&Decrement{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[Decrement]{DB: db}
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+
+	if count == 0 {
+		repo.Create(&Decrement{Count: 100})
+	}
+
+	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})
+	require.Nil(t, err)
+
+	err = repo.Decrement(first.ID.String(), "Count", 1)
+	require.Nil(t, err)
+
+	err = repo.Decrement("1", "Count", 1)
+	require.NotNil(t, err)
+
+	err = repo.Decrement(first.ID.String(), "Kafka", 1)
+	require.NotNil(t, err)
+}

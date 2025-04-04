@@ -78,3 +78,30 @@ func (repo *Repository[M]) DeleteMany(where interface{}) error {
 	}
 	return nil
 }
+
+func (repo *Repository[M]) Increment(id string, field string, value int) error {
+	record, err := repo.FindOne(map[string]interface{}{"id": id}, FindOneOptions{})
+
+	if err != nil {
+		return err
+	}
+
+	result := repo.DB.Model(record).Update(field, gorm.Expr(field+" + ?", value))
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (repo *Repository[M]) Decrement(id string, field string, value int) error {
+	record, err := repo.FindOne(map[string]interface{}{"id": id}, FindOneOptions{})
+	if err != nil {
+		return err
+	}
+
+	result := repo.DB.Model(record).Update(field, gorm.Expr(field+" - ?", value))
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
