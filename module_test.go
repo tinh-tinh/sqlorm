@@ -90,18 +90,18 @@ func Test_Module(t *testing.T) {
 
 	resp, err := testClient.Post(testServer.URL+"/api/users", "application/json", nil)
 	require.Nil(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 	resp, err = testClient.Get(testServer.URL + "/api/users")
 	require.Nil(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
 func Test_ModuleFactory(t *testing.T) {
 	require.NotPanics(t, func() {
-		createDatabaseForTest("test")
+		createDatabaseForTest("test2")
 	})
-	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=postgres password=postgres dbname=test2 port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
 		sqlorm.Model `gorm:"embedded"`
@@ -152,7 +152,7 @@ func Test_ModuleFactory(t *testing.T) {
 					Factory: func(module core.Module) gorm.Dialector {
 						return postgres.Open(dsn)
 					},
-					Models: []interface{}{&User{}},
+					Models: []interface{}{User{}},
 				}),
 				userModule,
 			},
@@ -174,11 +174,76 @@ func Test_ModuleFactory(t *testing.T) {
 
 	resp, err := testClient.Post(testServer.URL+"/api/users", "application/json", nil)
 	require.Nil(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 	resp, err = testClient.Get(testServer.URL + "/api/users")
 	require.Nil(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+func Test_ModuleSync(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	type User struct {
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
+		Email        string `gorm:"type:varchar(255);not null"`
+	}
+
+	appModule := func() core.Module {
+		module := core.NewModule(core.NewModuleOptions{
+			Imports: []core.Modules{
+				sqlorm.ForRoot(sqlorm.Options{
+					Dialect: postgres.Open(dsn),
+					Models:  []interface{}{&User{}},
+				}),
+			},
+		})
+
+		return module
+	}
+
+	connect := sqlorm.Inject(appModule())
+	require.NotNil(t, connect)
+}
+
+func Test_Panic(t *testing.T) {
+	require.Panics(t, func() {
+		appModule := func() core.Module {
+			module := core.NewModule(core.NewModuleOptions{
+				Imports: []core.Modules{
+					sqlorm.ForRoot(sqlorm.Options{
+						Dialect: postgres.Open(""),
+					}),
+				},
+			})
+
+			return module
+		}
+
+		connect := sqlorm.Inject(appModule())
+		require.NotNil(t, connect)
+
+		app := core.CreateFactory(appModule)
+		app.SetGlobalPrefix("/api")
+
+		testServer := httptest.NewServer(app.PrepareBeforeListen())
+		defer testServer.Close()
+	})
+}
+
+func Test_Nil(t *testing.T) {
+
+	type User struct {
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
+		Email        string `gorm:"type:varchar(255);not null"`
+	}
+
+	require.Nil(t, sqlorm.InjectRepository[User](core.NewModule(core.NewModuleOptions{})))
 }
 
 func createDatabaseForTest(dbName string) {

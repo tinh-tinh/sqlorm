@@ -28,6 +28,7 @@ type Options struct {
 	Factory     func(module core.Module) ConnectOptions
 	GetTenantID func(r *http.Request) string
 	Models      []interface{}
+	Sync        bool
 }
 
 type ConnectMapper map[string]*gorm.DB
@@ -70,13 +71,13 @@ func ForRoot(opt Options) core.Modules {
 						return nil
 					}
 					conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
-					fmt.Println("connected to database")
 
-					err = conn.AutoMigrate(opt.Models...)
-					if err != nil {
-						panic(err)
+					if opt.Sync {
+						err = conn.AutoMigrate(opt.Models...)
+						if err != nil {
+							panic(err)
+						}
 					}
-					fmt.Println("Migrated successful")
 
 					mapper[tenantID] = conn
 				}
@@ -116,7 +117,7 @@ func ForFeature(models ...sqlorm.RepoCommon) core.Modules {
 	}
 }
 
-func InjectRepository[M any](module core.Module, ctx core.Ctx) *sqlorm.Repository[M] {
+func InjectRepository[M any](module core.RefProvider, ctx core.Ctx) *sqlorm.Repository[M] {
 	var model M
 	modelName := core.Provide(sqlorm.GetRepoName(common.GetStructName(model)))
 	data, ok := module.Ref(modelName, ctx).(*sqlorm.Repository[M])
