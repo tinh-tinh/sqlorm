@@ -9,6 +9,7 @@ type FindOneOptions struct {
 }
 
 type FindOptions struct {
+	Distinct    []interface{}
 	Select      []string
 	Order       []string
 	WithDeleted bool
@@ -24,10 +25,13 @@ func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]M, er
 	if len(options) > 0 {
 		opt = options[0]
 	}
-	if len(opt.Select) > 0 && opt.Select != nil {
+	if len(opt.Distinct) > 0 {
+		tx = tx.Distinct(opt.Distinct...)
+	}
+	if opt.Select != nil {
 		tx = tx.Select(opt.Select)
 	}
-	if len(opt.Order) > 0 && opt.Order != nil {
+	if opt.Order != nil {
 		for _, order := range opt.Order {
 			tx = tx.Order(order)
 		}

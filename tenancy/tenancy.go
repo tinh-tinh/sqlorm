@@ -64,7 +64,10 @@ func ForRoot(opt Options) core.Modules {
 					return nil
 				}
 				if mapper[tenantID] == nil {
-					CreateDabaseIfNotExist(tenantID, connectOpt)
+					err := CreateDabaseIfNotExist(tenantID, connectOpt)
+					if err != nil {
+						panic(err)
+					}
 					dns := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai", connectOpt.Host, connectOpt.Port, connectOpt.User, connectOpt.Password, tenantID)
 					conn, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 					if err != nil {

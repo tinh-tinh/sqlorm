@@ -194,7 +194,8 @@ func Test_Increment(t *testing.T) {
 	require.Nil(t, err)
 
 	if count == 0 {
-		repo.Create(&Increment{Count: 0})
+		_, err = repo.Create(&Increment{Count: 0})
+		require.Nil(t, err)
 	}
 
 	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})
@@ -225,7 +226,8 @@ func Test_Decrement(t *testing.T) {
 	require.Nil(t, err)
 
 	if count == 0 {
-		repo.Create(&Decrement{Count: 100})
+		_, err = repo.Create(&Decrement{Count: 100})
+		require.Nil(t, err)
 	}
 
 	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})

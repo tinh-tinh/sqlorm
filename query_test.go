@@ -286,3 +286,40 @@ func Test_SoftDelete(t *testing.T) {
 	require.Equal(t, int64(0), count)
 
 }
+
+func Test_Distinct(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	require.Nil(t, err)
+
+	type Distinct struct {
+		Name     string `gorm:"type:varchar(255);not null"`
+		Status   string `gorm:"type:varchar(50);default:'inactive'"`
+		Priority int    `gorm:"type:int;default:0"`
+	}
+	err = db.AutoMigrate(&Distinct{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[Distinct]{DB: db}
+
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+
+	if count == 0 {
+		_, err = repo.BatchCreate([]*Distinct{
+			{Name: "test", Status: "active", Priority: 1},
+			{Name: "test", Status: "active", Priority: 2},
+			{Name: "test2", Status: "active", Priority: 3},
+		})
+		require.Nil(t, err)
+	}
+	result, err := repo.FindAll(nil, sqlorm.FindOptions{
+		Distinct: []interface{}{"name"},
+	})
+	require.Nil(t, err)
+	require.Len(t, result, 2)
+}
