@@ -1,4 +1,4 @@
 #!/bin/sh
 #!/bin/sh
-golangci-lint run
+golangci-lint run --config .golangci.yml
 git add .

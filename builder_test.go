@@ -37,11 +37,12 @@ func Test_QueryBuilder(t *testing.T) {
 	require.Nil(t, err)
 
 	if count == 0 {
-		repo.BatchCreate([]*Documents{
+		_, err = repo.BatchCreate([]*Documents{
 			{Name: "test", Status: "active", Priority: 1},
 			{Name: "test2", Status: "active", Priority: 2},
 			{Name: "test3", Status: "active", Priority: 3},
 		})
+		require.Nil(t, err)
 	}
 	// Equal case
 	docs, err := repo.FindAll(func(qb *sqlorm.QueryBuilder) {
