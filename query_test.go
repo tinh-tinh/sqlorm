@@ -7,6 +7,7 @@ import (
 	"github.com/tinh-tinh/sqlorm/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func Test_FindMany(t *testing.T) {
@@ -322,4 +323,127 @@ func Test_Distinct(t *testing.T) {
 	})
 	require.Nil(t, err)
 	require.Len(t, result, 2)
+}
+
+func Test_Related(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	require.Nil(t, err)
+
+	type Company struct {
+		ID   int
+		Name string
+	}
+
+	type Employee struct {
+		gorm.Model
+		Name      string
+		CompanyID int
+		Company   Company
+	}
+
+	err = db.AutoMigrate(&Company{}, &Employee{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[Employee]{DB: db}
+
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+	if count == 0 {
+		companyRepo := sqlorm.Repository[Company]{DB: db}
+		company, err := companyRepo.Create(&Company{ID: 1, Name: "Abc"})
+		require.Nil(t, err)
+
+		type CreateEmploye struct {
+			Name      string
+			CompanyID int
+		}
+		_, err = repo.Create(&CreateEmploye{
+			Name:      "John",
+			CompanyID: company.ID,
+		})
+		require.Nil(t, err)
+	}
+
+	employees, err := repo.FindAll(nil, sqlorm.FindOptions{
+		Related: []string{"Company"},
+	})
+	require.Nil(t, err)
+	require.Len(t, employees, 1)
+	emp := employees[0]
+	require.Equal(t, 1, emp.Company.ID)
+	require.Equal(t, "Abc", emp.Company.Name)
+}
+
+func Test_Multi_Related(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	require.Nil(t, err)
+
+	type Department struct {
+		gorm.Model
+		Name string
+	}
+
+	type Location struct {
+		gorm.Model
+		Name string
+	}
+
+	type Title struct {
+		gorm.Model
+		Name         string
+		DepartmentID int
+		Department   Department
+		LocationID   int
+		Location     Location
+	}
+
+	err = db.AutoMigrate(&Department{}, &Location{}, &Title{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[Title]{DB: db}
+
+	count, err := repo.Count(nil)
+	require.Nil(t, err)
+	if count == 0 {
+		locationRepo := sqlorm.Repository[Location]{DB: db}
+		location, err := locationRepo.Create(&Location{Name: "Vietnam"})
+		require.Nil(t, err)
+
+		departmentRepo := sqlorm.Repository[Department]{DB: db}
+		department, err := departmentRepo.Create(&Department{Name: "Engineer"})
+		require.Nil(t, err)
+
+		type CreateTitle struct {
+			Name         string
+			DepartmentID int
+			LocationID   int
+		}
+		_, err = repo.Create(&CreateTitle{
+			Name:         "Engineer I",
+			DepartmentID: int(department.ID),
+			LocationID:   int(location.ID),
+		})
+		require.Nil(t, err)
+	}
+
+	title, err := repo.FindOne(nil, sqlorm.FindOneOptions{
+		Related: []string{"Department", "Location"},
+	})
+	require.Nil(t, err)
+	require.Equal(t, "Vietnam", title.Location.Name)
+	require.Equal(t, "Engineer", title.Department.Name)
 }
