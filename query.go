@@ -6,6 +6,7 @@ type FindOneOptions struct {
 	Select      []string
 	Order       []string
 	WithDeleted bool
+	Related     []string
 }
 
 type FindOptions struct {
@@ -15,6 +16,7 @@ type FindOptions struct {
 	WithDeleted bool
 	Limit       int
 	Offset      int
+	Related     []string
 }
 
 func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]M, error) {
@@ -24,6 +26,11 @@ func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]M, er
 	var opt FindOptions
 	if len(options) > 0 {
 		opt = options[0]
+	}
+	if len(opt.Related) > 0 {
+		for _, key := range opt.Related {
+			tx = tx.Joins(key)
+		}
 	}
 	if len(opt.Distinct) > 0 {
 		tx = tx.Distinct(opt.Distinct...)
@@ -71,6 +78,11 @@ func (repo *Repository[M]) FindOne(where Query, options ...FindOneOptions) (*M, 
 	var opt FindOneOptions
 	if len(options) > 0 {
 		opt = options[0]
+	}
+	if len(opt.Related) > 0 {
+		for _, key := range opt.Related {
+			tx = tx.Joins(key)
+		}
 	}
 	if opt.Select != nil {
 		tx = tx.Select(opt.Select)
