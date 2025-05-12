@@ -49,6 +49,11 @@ jobs:
 
     - name: Test with coverage
       if: steps.set_run_tests.outputs.should_run_tests == 'true'
+      run: |
+        go test -cover -coverprofile=coverage.txt ./...
+
+    - name: Upload coverage reports to Codecov
+      if: steps.set_run_tests.outputs.should_run_tests == 'true'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

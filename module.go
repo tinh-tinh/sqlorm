@@ -8,36 +8,35 @@ import (
 	"gorm.io/gorm"
 )
 
-type Options struct {
+type Config struct {
 	Dialect gorm.Dialector
-	Factory func(module core.Module) gorm.Dialector
 	Models  []interface{}
 	Sync    bool
+	Options []gorm.Option
 }
 
 const ConnectDB core.Provide = "ConnectDB"
 
-func ForRoot(opt Options, configs ...gorm.Option) core.Modules {
+func ForRoot(config Config) core.Modules {
 	return func(module core.Module) core.Module {
-		var dialector gorm.Dialector
-		if opt.Factory != nil {
-			dialector = opt.Factory(module)
-		} else {
-			dialector = opt.Dialect
-		}
-		conn, err := gorm.Open(dialector, configs...)
-		if err != nil {
-			panic(err)
-		}
-		conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
+		conn := NewConnect(config)
+		sqlModule := module.New(core.NewModuleOptions{})
+		sqlModule.NewProvider(core.ProviderOptions{
+			Name:  ConnectDB,
+			Value: conn,
+		})
+		sqlModule.Export(ConnectDB)
 
-		if opt.Sync {
-			err = conn.AutoMigrate(opt.Models...)
-			if err != nil {
-				panic(err)
-			}
-		}
+		return sqlModule
+	}
+}
 
+type ConfigFactory func(module core.RefProvider) Config
+
+func ForRootFactory(factory ConfigFactory) core.Modules {
+	return func(module core.Module) core.Module {
+		config := factory(module)
+		conn := NewConnect(config)
 		sqlModule := module.New(core.NewModuleOptions{})
 		sqlModule.NewProvider(core.ProviderOptions{
 			Name:  ConnectDB,
