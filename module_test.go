@@ -66,7 +66,7 @@ func Test_Module(t *testing.T) {
 	appModule := func() core.Module {
 		module := core.NewModule(core.NewModuleOptions{
 			Imports: []core.Modules{
-				sqlorm.ForRoot(sqlorm.Options{
+				sqlorm.ForRoot(sqlorm.Config{
 					Dialect: postgres.Open(dsn),
 					Models:  []interface{}{&User{}},
 				}),
@@ -148,11 +148,11 @@ func Test_ModuleFactory(t *testing.T) {
 	appModule := func() core.Module {
 		module := core.NewModule(core.NewModuleOptions{
 			Imports: []core.Modules{
-				sqlorm.ForRoot(sqlorm.Options{
-					Factory: func(module core.Module) gorm.Dialector {
-						return postgres.Open(dsn)
-					},
-					Models: []interface{}{User{}},
+				sqlorm.ForRootFactory(func(module core.RefProvider) sqlorm.Config {
+					return sqlorm.Config{
+						Dialect: postgres.Open(dsn),
+						Models:  []interface{}{User{}},
+					}
 				}),
 				userModule,
 			},
@@ -196,7 +196,7 @@ func Test_ModuleSync(t *testing.T) {
 	appModule := func() core.Module {
 		module := core.NewModule(core.NewModuleOptions{
 			Imports: []core.Modules{
-				sqlorm.ForRoot(sqlorm.Options{
+				sqlorm.ForRoot(sqlorm.Config{
 					Dialect: postgres.Open(dsn),
 					Models:  []interface{}{&User{}},
 				}),
@@ -215,7 +215,7 @@ func Test_Panic(t *testing.T) {
 		appModule := func() core.Module {
 			module := core.NewModule(core.NewModuleOptions{
 				Imports: []core.Modules{
-					sqlorm.ForRoot(sqlorm.Options{
+					sqlorm.ForRoot(sqlorm.Config{
 						Dialect: postgres.Open(""),
 					}),
 				},
