@@ -371,6 +371,7 @@ func Test_Related(t *testing.T) {
 		require.Nil(t, err)
 	}
 
+	// Find Joins
 	employees, err := repo.FindAll(nil, sqlorm.FindOptions{
 		Related: []string{"Company"},
 	})
@@ -379,6 +380,17 @@ func Test_Related(t *testing.T) {
 	emp := employees[0]
 	require.Equal(t, 1, emp.Company.ID)
 	require.Equal(t, "Abc", emp.Company.Name)
+
+	// Find Preload
+	employees, err = repo.FindAll(nil, sqlorm.FindOptions{
+		Related:  []string{"Company"},
+		Seperate: true,
+	})
+	require.Nil(t, err)
+	require.Len(t, employees, 1)
+	empSeperate := employees[0]
+	require.Equal(t, 1, empSeperate.Company.ID)
+	require.Equal(t, "Abc", empSeperate.Company.Name)
 }
 
 func Test_Multi_Related(t *testing.T) {
@@ -440,10 +452,20 @@ func Test_Multi_Related(t *testing.T) {
 		require.Nil(t, err)
 	}
 
+	// Find joins
 	title, err := repo.FindOne(nil, sqlorm.FindOneOptions{
 		Related: []string{"Department", "Location"},
 	})
 	require.Nil(t, err)
 	require.Equal(t, "Vietnam", title.Location.Name)
 	require.Equal(t, "Engineer", title.Department.Name)
+
+	// Find preload
+	titlePreload, err := repo.FindOne(nil, sqlorm.FindOneOptions{
+		Related:  []string{"Department", "Location"},
+		Seperate: true,
+	})
+	require.Nil(t, err)
+	require.Equal(t, "Vietnam", titlePreload.Location.Name)
+	require.Equal(t, "Engineer", titlePreload.Department.Name)
 }
