@@ -33,6 +33,10 @@ func (repo *Repository[M]) UpdateOne(where interface{}, val interface{}) (*M, er
 	return record, nil
 }
 
+func (repo *Repository[M]) UpdateByID(id string, val interface{}) (*M, error) {
+	return repo.UpdateOne(map[string]any{"id": id}, val)
+}
+
 func (repo *Repository[M]) UpdateMany(where interface{}, val interface{}) error {
 	var model M
 	input := MapOne[M](val)
@@ -62,6 +66,10 @@ func (repo *Repository[M]) DeleteOne(where interface{}) error {
 		return result.Error
 	}
 	return nil
+}
+
+func (repo *Repository[M]) DeleteByID(id string) error {
+	return repo.DeleteOne(map[string]any{"id": id})
 }
 
 func (repo *Repository[M]) DeleteMany(where interface{}) error {

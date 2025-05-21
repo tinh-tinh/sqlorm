@@ -95,6 +95,10 @@ func Test_Update(t *testing.T) {
 		result, err = repo.UpdateOne(map[string]interface{}{"id": result.ID.String()}, &UpdateTodo{Name: "haha", Haha: "haha", Hihi: "hihi"})
 		require.Nil(t, err)
 		require.Equal(t, "haha", result.Name)
+
+		result, err = repo.UpdateByID(result.ID.String(), &UpdateTodo{Name: "kafka"})
+		require.Nil(t, err)
+		require.Equal(t, "kafka", result.Name)
 	})
 }
 
@@ -144,6 +148,12 @@ func Test_Delete(t *testing.T) {
 
 		err = repo.DeleteOne(map[string]interface{}{"name": "Luxembuar"})
 		require.NotNil(t, err)
+
+		result, err = repo.Create(&CreateTodo{Name: "Manager"})
+		require.Nil(t, err)
+
+		err = repo.DeleteByID(result.ID.String())
+		require.Nil(t, err)
 	})
 }
 
