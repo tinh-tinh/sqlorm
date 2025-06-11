@@ -1,6 +1,10 @@
 package sqlorm
 
-import "gorm.io/gorm"
+import (
+	"sync"
+
+	"gorm.io/gorm"
+)
 
 type FindOneOptions struct {
 	Select      []string
@@ -21,8 +25,8 @@ type FindOptions struct {
 	Seperate    bool
 }
 
-func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]M, error) {
-	var model []M
+func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]*M, error) {
+	var model []*M
 	tx := repo.DB
 
 	var opt FindOptions
@@ -180,4 +184,34 @@ func (repo *Repository[M]) Exist(where Query, options ...FindOneOptions) (bool, 
 		return false, result.Error
 	}
 	return true, nil
+}
+
+func (repo *Repository[M]) FindAllAndCount(where Query, options ...FindOptions) ([]*M, int64, error) {
+	var wg sync.WaitGroup
+	var findAllRes []*M
+	var countRes int64
+	var findErr, countErr error
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		findAllRes, findErr = repo.FindAll(where, options...)
+	}()
+
+	go func() {
+		defer wg.Done()
+		countRes, countErr = repo.Count(where)
+	}()
+
+	wg.Wait()
+
+	if findErr != nil {
+		return nil, 0, findErr
+	}
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	return findAllRes, countRes, nil
 }
