@@ -469,3 +469,43 @@ func Test_Multi_Related(t *testing.T) {
 	require.Equal(t, "Vietnam", titlePreload.Location.Name)
 	require.Equal(t, "Engineer", titlePreload.Department.Name)
 }
+
+func Test_FindAndCount(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	require.Nil(t, err)
+
+	type FindAndCount struct {
+		sqlorm.Model `gorm:"embedded"`
+		Name         string `gorm:"type:varchar(255);not null"`
+		Status       string `gorm:"type:varchar(50)"`
+		Priority     int    `gorm:"type:int"`
+	}
+
+	err = db.AutoMigrate(&FindAndCount{})
+	require.Nil(t, err)
+
+	repo := sqlorm.Repository[FindAndCount]{DB: db}
+	result, total, err := repo.FindAllAndCount(nil)
+	require.Nil(t, err)
+	if total == 0 || result == nil {
+		// Create test data
+		todos := []*FindAndCount{
+			{Name: "Test Todo 1", Status: "active", Priority: 1},
+			{Name: "Test Todo 2", Status: "active", Priority: 2},
+			{Name: "Test Todo 3", Status: "completed", Priority: 1},
+			{Name: "Test Todo 4", Status: "completed", Priority: 3},
+		}
+		_, err := repo.BatchCreate(todos)
+		require.Nil(t, err)
+	}
+
+	result, total, err = repo.FindAllAndCount(nil)
+	require.Nil(t, err)
+	require.Equal(t, int64(4), total)
+	require.Equal(t, "Test Todo 1", result[0].Name)
+}
