@@ -131,7 +131,7 @@ func (repo *Repository[M]) FindOne(where Query, options ...FindOneOptions) (*M, 
 	return &model, nil
 }
 
-func (repo *Repository[M]) FindByID(id string, options ...FindOneOptions) (*M, error) {
+func (repo *Repository[M]) FindByID(id any, options ...FindOneOptions) (*M, error) {
 	return repo.FindOne(map[string]interface{}{"id": id}, options...)
 }
 
