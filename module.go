@@ -14,12 +14,15 @@ type RetryOptions struct {
 	Delay      time.Duration
 }
 
+type OnInit func(db *gorm.DB)
+
 type Config struct {
 	Dialect gorm.Dialector
 	Models  []interface{}
 	Sync    bool
 	Options []gorm.Option
 	Retry   *RetryOptions
+	OnInit  OnInit
 }
 
 const ConnectDB core.Provide = "ConnectDB"
