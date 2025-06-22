@@ -24,6 +24,9 @@ func NewConnect(config Config) *gorm.DB {
 		}
 		panic(err)
 	}
+	if config.OnInit != nil {
+		config.OnInit(conn)
+	}
 	if config.Sync {
 		err = conn.AutoMigrate(config.Models...)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tinh-tinh/sqlorm/v2"
 	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func TestRetryConnect(t *testing.T) {
@@ -21,4 +22,19 @@ func TestRetryConnect(t *testing.T) {
 		})
 		require.NotNil(t, conn)
 	})
+}
+
+func TestOnInit(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	conn := sqlorm.NewConnect(sqlorm.Config{
+		Dialect: postgres.Open(dsn),
+		OnInit: func(db *gorm.DB) {
+			require.NotNil(t, db)
+		},
+	})
+
+	require.NotNil(t, conn)
 }
