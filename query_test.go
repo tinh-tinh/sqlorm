@@ -47,7 +47,7 @@ func Test_FindMany(t *testing.T) {
 	}
 
 	if result1 != nil {
-		result2, err := repo.FindByID(result1.ID.String(), sqlorm.FindOneOptions{
+		result2, err := repo.FindByID(result1.ID, sqlorm.FindOneOptions{
 			Select: []string{"name"},
 		})
 		require.Nil(t, err)

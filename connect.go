@@ -24,7 +24,6 @@ func NewConnect(config Config) *gorm.DB {
 		}
 		panic(err)
 	}
-	conn.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 	if config.Sync {
 		err = conn.AutoMigrate(config.Models...)
 		if err != nil {
