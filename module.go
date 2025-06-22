@@ -2,17 +2,24 @@ package sqlorm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"github.com/tinh-tinh/tinhtinh/v2/core"
 	"gorm.io/gorm"
 )
 
+type RetryOptions struct {
+	MaxRetries int
+	Delay      time.Duration
+}
+
 type Config struct {
 	Dialect gorm.Dialector
 	Models  []interface{}
 	Sync    bool
 	Options []gorm.Option
+	Retry   *RetryOptions
 }
 
 const ConnectDB core.Provide = "ConnectDB"
