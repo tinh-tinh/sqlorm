@@ -25,6 +25,9 @@ func (repo *Repository[M]) UpdateOne(where interface{}, val interface{}) (*M, er
 	if err != nil {
 		return nil, err
 	}
+	if record == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
 	input := MapOne[M](val)
 	result := repo.DB.Model(record).Updates(input)
 	if result.Error != nil {
