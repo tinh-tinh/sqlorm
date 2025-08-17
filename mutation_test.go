@@ -56,7 +56,7 @@ func Test_BatchCreate(t *testing.T) {
 			{Name: "def", Haha: "haha", Hihi: "hihi"},
 			{Name: "ghi", Haha: "haha", Hihi: "hihi"},
 			{Name: "jkl", Haha: "haha", Hihi: "hihi"},
-		})
+		}, 5)
 		require.Nil(t, err)
 		require.Len(t, result, 4)
 		require.Equal(t, "abc", result[0].Name)

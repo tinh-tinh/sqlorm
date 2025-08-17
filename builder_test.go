@@ -41,7 +41,7 @@ func Test_QueryBuilder(t *testing.T) {
 			{Name: "test", Status: "active", Priority: 1},
 			{Name: "test2", Status: "active", Priority: 2},
 			{Name: "test3", Status: "active", Priority: 3},
-		})
+		}, 5)
 		require.Nil(t, err)
 	}
 	// Equal case

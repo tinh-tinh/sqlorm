@@ -11,9 +11,9 @@ func (repo *Repository[M]) Create(val interface{}) (*M, error) {
 	return input, nil
 }
 
-func (repo *Repository[M]) BatchCreate(val interface{}) ([]*M, error) {
+func (repo *Repository[M]) BatchCreate(val interface{}, size int) ([]*M, error) {
 	input := MapMany[M](val)
-	result := repo.DB.Create(input)
+	result := repo.DB.CreateInBatches(input, size)
 	if result.Error != nil {
 		return nil, result.Error
 	}
