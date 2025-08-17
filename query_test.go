@@ -315,7 +315,7 @@ func Test_Distinct(t *testing.T) {
 			{Name: "test", Status: "active", Priority: 1},
 			{Name: "test", Status: "active", Priority: 2},
 			{Name: "test2", Status: "active", Priority: 3},
-		})
+		}, 5)
 		require.Nil(t, err)
 	}
 	result, err := repo.FindAll(nil, sqlorm.FindOptions{
@@ -500,7 +500,7 @@ func Test_FindAndCount(t *testing.T) {
 			{Name: "Test Todo 3", Status: "completed", Priority: 1},
 			{Name: "Test Todo 4", Status: "completed", Priority: 3},
 		}
-		_, err := repo.BatchCreate(todos)
+		_, err := repo.BatchCreate(todos, 5)
 		require.Nil(t, err)
 	}
 
