@@ -21,19 +21,13 @@ func (repo *Repository[M]) BatchCreate(val interface{}, size int) ([]*M, error) 
 }
 
 func (repo *Repository[M]) UpdateOne(where interface{}, val interface{}) (*M, error) {
-	record, err := repo.FindOne(where, FindOneOptions{})
-	if err != nil {
-		return nil, err
-	}
-	if record == nil {
-		return nil, gorm.ErrRecordNotFound
-	}
+	var record M
 	input := MapOne[M](val)
-	result := repo.DB.Model(record).Updates(input)
+	result := repo.DB.Model(&record).Where(where).Updates(input)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return record, nil
+	return input, nil
 }
 
 func (repo *Repository[M]) UpdateByID(id any, val interface{}) (*M, error) {
