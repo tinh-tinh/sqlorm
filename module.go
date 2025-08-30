@@ -3,6 +3,7 @@ package sqlorm
 import (
 	"fmt"
 	"time"
+	"reflect"
 
 	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"github.com/tinh-tinh/tinhtinh/v2/core"
