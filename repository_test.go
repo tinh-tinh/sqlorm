@@ -69,3 +69,17 @@ func Test_Map(t *testing.T) {
 	list4 := sqlorm.MapMany[Todo](nil)
 	require.Equal(t, 0, len(list4))
 }
+
+type Abc struct {
+	sqlorm.Model `gorm:"embedded"`
+	Name         string `gorm:"type:varchar(255);not null"`
+}
+
+func (Abc) RepositoryName() string {
+	return "service"
+}
+
+func TestNameRepo(t *testing.T) {
+	repo := sqlorm.NewRepo(Abc{})
+	require.Equal(t, "service", repo.GetName())
+}
