@@ -68,7 +68,16 @@ func Inject(ref core.RefProvider) *gorm.DB {
 
 func InjectRepository[M any](ref core.RefProvider) *Repository[M] {
 	var model M
-	modelName := core.Provide(fmt.Sprintf("%sRepo", common.GetStructName(model)))
+	
+	ctModel := reflect.ValueOf(&model).Elem()
+	fnc := ctModel.MethodByName("RepositoryName")
+	var name string
+	if fnc.IsValid() {
+		name = fnc.Call(nil)[0].String()
+	} else {
+		name = common.GetStructName(model)
+	}
+	modelName := core.Provide(GetRepoName(name))
 	data, ok := ref.Ref(modelName).(*Repository[M])
 	if !ok {
 		return nil
