@@ -384,13 +384,13 @@ func Test_Related(t *testing.T) {
 	// Find Preload
 	employees, err = repo.FindAll(nil, sqlorm.FindOptions{
 		Related:  []string{"Company"},
-		Seperate: true,
+		Separate: true,
 	})
 	require.Nil(t, err)
 	require.Len(t, employees, 1)
-	empSeperate := employees[0]
-	require.Equal(t, 1, empSeperate.Company.ID)
-	require.Equal(t, "Abc", empSeperate.Company.Name)
+	empSeparate := employees[0]
+	require.Equal(t, 1, empSeparate.Company.ID)
+	require.Equal(t, "Abc", empSeparate.Company.Name)
 }
 
 func Test_Multi_Related(t *testing.T) {
@@ -463,7 +463,7 @@ func Test_Multi_Related(t *testing.T) {
 	// Find preload
 	titlePreload, err := repo.FindOne(nil, sqlorm.FindOneOptions{
 		Related:  []string{"Department", "Location"},
-		Seperate: true,
+		Separate: true,
 	})
 	require.Nil(t, err)
 	require.Equal(t, "Vietnam", titlePreload.Location.Name)
