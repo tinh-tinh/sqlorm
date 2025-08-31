@@ -246,6 +246,29 @@ func Test_Nil(t *testing.T) {
 	require.Nil(t, sqlorm.InjectRepository[User](core.NewModule(core.NewModuleOptions{})))
 }
 
+func Test_RefName(t *testing.T) {
+	require.NotPanics(t, func() {
+		createDatabaseForTest("test")
+	})
+	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+	appModule := func() core.Module {
+		module := core.NewModule(core.NewModuleOptions{
+			Imports: []core.Modules{
+				sqlorm.ForRoot(sqlorm.Config{
+					Dialect: postgres.Open(dsn),
+					Models:  []interface{}{&Abc{}},
+				}),
+				sqlorm.ForFeature(sqlorm.NewRepo(Abc{})),
+			},
+		})
+
+		return module
+	}
+	abcRepo := sqlorm.InjectRepository[Abc](appModule())
+	require.NotNil(t, abcRepo)
+}
+
 func createDatabaseForTest(dbName string) {
 	connStr := "host=localhost user=postgres password=postgres port=5432 dbname=postgres sslmode=disable TimeZone=Asia/Shanghai"
 

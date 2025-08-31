@@ -23,7 +23,16 @@ type Repository[M any] struct {
 
 func (r *Repository[M]) GetName() string {
 	var model M
-	return common.GetStructName(model)
+	
+	ctModel := reflect.ValueOf(&model).Elem()
+	fnc := ctModel.MethodByName("RepositoryName")
+	var name string
+	if fnc.IsValid() {
+		name = fnc.Call(nil)[0].String()
+	} else {
+		name = common.GetStructName(model)
+	}
+	return name
 }
 
 func (r *Repository[M]) SetDB(db *gorm.DB) {
