@@ -50,32 +50,47 @@ func (repo *Repository[M]) UpdateMany(where interface{}, val interface{}) error 
 	return nil
 }
 
-func (repo *Repository[M]) DeleteOne(where interface{}) error {
-	record, err := repo.FindOne(where, FindOneOptions{})
+func (repo *Repository[M]) DeleteOne(where interface{}, isForceDelete ...bool) error {
+	withDeleted := false
+	if len(isForceDelete) > 0 && isForceDelete[0] {
+		withDeleted = true
+	}
+
+	record, err := repo.FindOne(where, FindOneOptions{
+		WithDeleted: withDeleted,
+	})
 	if err != nil {
 		return err
 	}
 	if record == nil {
 		return gorm.ErrRecordNotFound
 	}
-	result := repo.DB.Delete(record)
+	tx := repo.DB
+	if withDeleted {
+		tx = tx.Unscoped()
+	}
+	result := tx.Delete(record)
 	if result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
 
-func (repo *Repository[M]) DeleteByID(id any) error {
-	return repo.DeleteOne(map[string]any{"id": id})
+func (repo *Repository[M]) DeleteByID(id any, isForceDelete ...bool) error {
+	return repo.DeleteOne(map[string]any{"id": id}, isForceDelete...)
 }
 
-func (repo *Repository[M]) DeleteMany(where interface{}) error {
+func (repo *Repository[M]) DeleteMany(where interface{}, isForceDelete ...bool) error {
 	var model M
 	tx := repo.DB
 	if where != nil {
 		tx = tx.Where(where)
 	} else {
 		tx = tx.Where("1 = 1")
+	}
+
+	if len(isForceDelete) > 0 && isForceDelete[0] {
+		tx = tx.Unscoped()
 	}
 	result := tx.Delete(&model)
 	if result.Error != nil {
