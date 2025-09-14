@@ -3,6 +3,7 @@ package sqlorm
 import (
 	"sync"
 
+	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +32,7 @@ func (repo *Repository[M]) FindAll(where Query, options ...FindOptions) ([]*M, e
 
 	var opt FindOptions
 	if len(options) > 0 {
-		opt = options[0]
+		opt = common.MergeStruct(options...)
 	}
 	if len(opt.Related) > 0 {
 		for _, key := range opt.Related {
@@ -87,7 +88,7 @@ func (repo *Repository[M]) FindOne(where Query, options ...FindOneOptions) (*M, 
 
 	var opt FindOneOptions
 	if len(options) > 0 {
-		opt = options[0]
+		opt = common.MergeStruct(options...)
 	}
 	if len(opt.Related) > 0 {
 		for _, key := range opt.Related {
@@ -135,10 +136,32 @@ func (repo *Repository[M]) FindByID(id any, options ...FindOneOptions) (*M, erro
 	return repo.FindOne(map[string]interface{}{"id": id}, options...)
 }
 
-func (repo *Repository[M]) Count(where interface{}, args ...interface{}) (int64, error) {
+func (repo *Repository[M]) Count(where interface{}, options ...FindOneOptions) (int64, error) {
 	var count int64
 	var model M
-	result := repo.DB.Model(&model).Where(where, args...).Count(&count)
+
+	var opt FindOneOptions
+	if len(options) > 0 {
+		opt = common.MergeStruct(options...)
+	}
+
+	tx := repo.DB.Model(&model)
+	if opt.WithDeleted {
+		tx = tx.Unscoped()
+	}
+
+	if IsQueryBuilder(where) {
+		queryFnc, ok := where.(func(qb *QueryBuilder))
+		if ok {
+			qb := &QueryBuilder{qb: tx}
+			queryFnc(qb)
+			tx = qb.qb
+		}
+	} else {
+		tx = tx.Where(where)
+	}
+
+	result := tx.Count(&count)
 	if result.Error != nil {
 		return 0, result.Error
 	}
@@ -151,7 +174,7 @@ func (repo *Repository[M]) Exist(where Query, options ...FindOneOptions) (bool, 
 
 	var opt FindOneOptions
 	if len(options) > 0 {
-		opt = options[0]
+		opt = common.MergeStruct(options...)
 	}
 	if opt.Select != nil {
 		tx = tx.Select(opt.Select)
