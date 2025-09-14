@@ -178,7 +178,6 @@ func Test_Sync(t *testing.T) {
 }
 
 func Test_NIl(t *testing.T) {
-
 	type User struct {
 		sqlorm.Model `gorm:"embedded"`
 		Name         string `gorm:"type:varchar(255);not null"`

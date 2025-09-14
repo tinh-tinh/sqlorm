@@ -2,8 +2,8 @@ package sqlorm
 
 import (
 	"fmt"
-	"time"
 	"reflect"
+	"time"
 
 	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"github.com/tinh-tinh/tinhtinh/v2/core"
@@ -19,7 +19,7 @@ type OnInit func(db *gorm.DB)
 
 type Config struct {
 	Dialect gorm.Dialector
-	Models  []interface{}
+	Models  []any
 	Sync    bool
 	Options []gorm.Option
 	Retry   *RetryOptions
@@ -69,7 +69,7 @@ func Inject(ref core.RefProvider) *gorm.DB {
 
 func InjectRepository[M any](ref core.RefProvider) *Repository[M] {
 	var model M
-	
+
 	ctModel := reflect.ValueOf(&model).Elem()
 	fnc := ctModel.MethodByName("RepositoryName")
 	var name string

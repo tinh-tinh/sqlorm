@@ -64,7 +64,7 @@ func ForRoot(opt Options) core.Modules {
 					return nil
 				}
 				if mapper[tenantID] == nil {
-					err := CreateDabaseIfNotExist(tenantID, connectOpt)
+					err := CreateDatabaseIfNotExist(tenantID, connectOpt)
 					if err != nil {
 						panic(err)
 					}
@@ -130,7 +130,7 @@ func InjectRepository[M any](module core.RefProvider, ctx core.Ctx) *sqlorm.Repo
 	return data
 }
 
-func CreateDabaseIfNotExist(dbName string, opt ConnectOptions) error {
+func CreateDatabaseIfNotExist(dbName string, opt ConnectOptions) error {
 	conStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=postgres sslmode=disable TimeZone=Asia/Shanghai", opt.Host, opt.Port, opt.User, opt.Password)
 	db, err := gorm.Open(postgres.Open(conStr), &gorm.Config{})
 	if err != nil {
