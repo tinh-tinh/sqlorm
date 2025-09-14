@@ -115,9 +115,9 @@ func Test_Count(t *testing.T) {
 	require.Equal(t, int64(4), count)
 
 	// Test counting with non-existent conditions
-	count, err = repo.Count(map[string]interface{}{
-		"status":   "non-existent",
-		"priority": 999,
+	count, err = repo.Count(func(q *sqlorm.QueryBuilder) {
+		q.Equal("status", "non-existent")
+		q.Equal("priority", 999)
 	})
 	require.Nil(t, err)
 	require.Equal(t, int64(0), count)
@@ -134,6 +134,13 @@ func Test_Count(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, int64(1), count)
 
+	countWithDeleted, err := repo.Count(map[string]any{
+		"status": "active",
+	}, sqlorm.FindOneOptions{
+		WithDeleted: true,
+	})
+	require.Nil(t, err)
+	require.Equal(t, int64(2), countWithDeleted)
 	// Reset test data by deleting all records
 	err = db.Unscoped().Where("1 = 1").Delete(&Count{}).Error
 	require.Nil(t, err)

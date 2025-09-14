@@ -154,26 +154,66 @@ func Test_Delete(t *testing.T) {
 
 		err = repo.DeleteByID(result.ID.String())
 		require.Nil(t, err)
+
+		found, err := repo.FindByID(result.ID.String(), sqlorm.FindOneOptions{
+			WithDeleted: true,
+		})
+		require.Nil(t, err)
+		require.NotNil(t, found)
+
+		err = repo.DeleteByID(result.ID.String(), true)
+		require.Nil(t, err)
+
+		found, err = repo.FindByID(result.ID.String(), sqlorm.FindOneOptions{
+			WithDeleted: true,
+		})
+		require.Nil(t, err)
+		require.Nil(t, found)
 	})
 }
 
 func Test_DeleteMany(t *testing.T) {
 	db := prepareBeforeTest(t)
 
-	type Todo struct {
+	type TodoDeleteMany struct {
 		sqlorm.Model `gorm:"embedded"`
 		Name         string `gorm:"type:varchar(255);not null"`
 	}
-	err := db.AutoMigrate(&Todo{})
+	err := db.AutoMigrate(&TodoDeleteMany{})
 	require.Nil(t, err)
 
-	repo := sqlorm.Repository[Todo]{DB: db}
+	repo := sqlorm.Repository[TodoDeleteMany]{DB: db}
 	require.NotPanics(t, func() {
-		err := repo.DeleteMany(map[string]interface{}{"name": "lulu"})
+		type CreateTodo struct {
+			Name string
+		}
+		_, err = repo.BatchCreate([]*CreateTodo{
+			{Name: "abc"},
+			{Name: "def"},
+			{Name: "ghi"},
+			{Name: "jkl"},
+		}, 5)
+		require.Nil(t, err)
+		err := repo.DeleteMany(map[string]interface{}{"name": "abc"})
 		require.Nil(t, err)
 
 		err = repo.DeleteMany(nil)
 		require.Nil(t, err)
+
+		found, err := repo.FindAll(nil, sqlorm.FindOptions{
+			WithDeleted: true,
+		})
+		require.Nil(t, err)
+		require.Greater(t, len(found), 0)
+
+		err = repo.DeleteMany(nil, true)
+		require.Nil(t, err)
+
+		found, err = repo.FindAll(nil, sqlorm.FindOptions{
+			WithDeleted: true,
+		})
+		require.Nil(t, err)
+		require.Len(t, found, 0)
 	})
 }
 
