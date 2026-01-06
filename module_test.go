@@ -22,9 +22,9 @@ func Test_Module(t *testing.T) {
 	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	userController := func(module core.Module) core.Controller {
@@ -104,9 +104,9 @@ func Test_ModuleFactory(t *testing.T) {
 	dsn := "host=localhost user=postgres password=postgres dbname=test2 port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	userController := func(module core.Module) core.Controller {
@@ -188,9 +188,9 @@ func Test_ModuleSync(t *testing.T) {
 	dsn := "host=localhost user=postgres password=postgres dbname=test port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	appModule := func() core.Module {
@@ -238,9 +238,9 @@ func Test_Panic(t *testing.T) {
 func Test_Nil(t *testing.T) {
 
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	require.Nil(t, sqlorm.InjectRepository[User](core.NewModule(core.NewModuleOptions{})))
