@@ -5,7 +5,6 @@ go 1.24.0
 toolchain go1.24.1
 
 require (
-	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/tinh-tinh/tinhtinh/v2 v2.3.0
 	gorm.io/driver/postgres v1.5.9
