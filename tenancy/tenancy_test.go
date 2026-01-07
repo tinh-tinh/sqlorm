@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinh-tinh/sqlorm/v2"
-	"github.com/tinh-tinh/sqlorm/v2/tenancy"
+	"github.com/tinh-tinh/tenancy"
 	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"github.com/tinh-tinh/tinhtinh/v2/core"
 	"gorm.io/gorm"
