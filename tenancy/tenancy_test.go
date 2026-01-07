@@ -10,13 +10,14 @@ import (
 	"github.com/tinh-tinh/sqlorm/v2/tenancy"
 	"github.com/tinh-tinh/tinhtinh/v2/common"
 	"github.com/tinh-tinh/tinhtinh/v2/core"
+	"gorm.io/gorm"
 )
 
 func Test_Tenant(t *testing.T) {
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	userController := func(module core.Module) core.Controller {
@@ -93,9 +94,9 @@ func Test_Tenant(t *testing.T) {
 
 func Test_Sync(t *testing.T) {
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	userController := func(module core.Module) core.Controller {
@@ -179,9 +180,9 @@ func Test_Sync(t *testing.T) {
 
 func Test_NIl(t *testing.T) {
 	type User struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Email        string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255);not null"`
+		Email string `gorm:"type:varchar(255);not null"`
 	}
 
 	require.Nil(t, tenancy.InjectRepository[User](core.NewModule(core.NewModuleOptions{}), nil))

@@ -1,6 +1,7 @@
 package sqlorm_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,8 +14,8 @@ func Test_Create(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -37,8 +38,8 @@ func Test_BatchCreate(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -70,8 +71,8 @@ func Test_Update(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -92,11 +93,11 @@ func Test_Update(t *testing.T) {
 			Haha string
 			Hihi string
 		}
-		result, err = repo.UpdateOne(map[string]interface{}{"id": result.ID.String()}, &UpdateTodo{Name: "haha", Haha: "haha", Hihi: "hihi"})
+		result, err = repo.UpdateOne(map[string]interface{}{"id": fmt.Sprintf("%d", result.ID)}, &UpdateTodo{Name: "haha", Haha: "haha", Hihi: "hihi"})
 		require.Nil(t, err)
 		require.Equal(t, "haha", result.Name)
 
-		result, err = repo.UpdateByID(result.ID.String(), &UpdateTodo{Name: "kafka"})
+		result, err = repo.UpdateByID(fmt.Sprintf("%d", result.ID), &UpdateTodo{Name: "kafka"})
 		require.Nil(t, err)
 		require.Equal(t, "kafka", result.Name)
 	})
@@ -106,8 +107,8 @@ func Test_UpdateMany(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -126,8 +127,8 @@ func Test_Delete(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -152,19 +153,19 @@ func Test_Delete(t *testing.T) {
 		result, err = repo.Create(&CreateTodo{Name: "Manager"})
 		require.Nil(t, err)
 
-		err = repo.DeleteByID(result.ID.String())
+		err = repo.DeleteByID(fmt.Sprintf("%d", result.ID))
 		require.Nil(t, err)
 
-		found, err := repo.FindByID(result.ID.String(), sqlorm.FindOneOptions{
+		found, err := repo.FindByID(fmt.Sprintf("%d", result.ID), sqlorm.FindOneOptions{
 			WithDeleted: true,
 		})
 		require.Nil(t, err)
 		require.NotNil(t, found)
 
-		err = repo.DeleteByID(result.ID.String(), true)
+		err = repo.DeleteByID(fmt.Sprintf("%d", result.ID), true)
 		require.Nil(t, err)
 
-		found, err = repo.FindByID(result.ID.String(), sqlorm.FindOneOptions{
+		found, err = repo.FindByID(fmt.Sprintf("%d", result.ID), sqlorm.FindOneOptions{
 			WithDeleted: true,
 		})
 		require.Nil(t, err)
@@ -176,8 +177,8 @@ func Test_DeleteMany(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type TodoDeleteMany struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err := db.AutoMigrate(&TodoDeleteMany{})
 	require.Nil(t, err)
@@ -233,8 +234,8 @@ func Test_Increment(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Increment struct {
-		sqlorm.Model `gorm:"embedded"`
-		Count        int `gorm:"type:int;not null;default:0"`
+		gorm.Model
+		Count int `gorm:"type:int;not null;default:0"`
 	}
 	err := db.AutoMigrate(&Increment{})
 	require.Nil(t, err)
@@ -251,13 +252,13 @@ func Test_Increment(t *testing.T) {
 	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})
 	require.Nil(t, err)
 
-	err = repo.Increment(first.ID.String(), "Count", 1)
+	err = repo.Increment(fmt.Sprintf("%d", first.ID), "Count", 1)
 	require.Nil(t, err)
 
-	err = repo.Increment("1", "Count", 1)
+	err = repo.Increment("999999", "Count", 1)
 	require.NotNil(t, err)
 
-	err = repo.Increment(first.ID.String(), "Kafka", 1)
+	err = repo.Increment(fmt.Sprintf("%d", first.ID), "Kafka", 1)
 	require.NotNil(t, err)
 }
 
@@ -265,8 +266,8 @@ func Test_Decrement(t *testing.T) {
 	db := prepareBeforeTest(t)
 
 	type Decrement struct {
-		sqlorm.Model `gorm:"embedded"`
-		Count        int `gorm:"type:int;not null;default:0"`
+		gorm.Model
+		Count int `gorm:"type:int;not null;default:0"`
 	}
 	err := db.AutoMigrate(&Decrement{})
 	require.Nil(t, err)
@@ -283,12 +284,12 @@ func Test_Decrement(t *testing.T) {
 	first, err := repo.FindOne(nil, sqlorm.FindOneOptions{})
 	require.Nil(t, err)
 
-	err = repo.Decrement(first.ID.String(), "Count", 1)
+	err = repo.Decrement(fmt.Sprintf("%d", first.ID), "Count", 1)
 	require.Nil(t, err)
 
-	err = repo.Decrement("1", "Count", 1)
+	err = repo.Decrement("999999", "Count", 1)
 	require.NotNil(t, err)
 
-	err = repo.Decrement(first.ID.String(), "Kafka", 1)
+	err = repo.Decrement(fmt.Sprintf("%d", first.ID), "Kafka", 1)
 	require.NotNil(t, err)
 }

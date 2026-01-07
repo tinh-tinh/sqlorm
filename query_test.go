@@ -20,8 +20,8 @@ func Test_FindMany(t *testing.T) {
 	require.Nil(t, err)
 
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 	err = db.AutoMigrate(&Todo{})
 	require.Nil(t, err)
@@ -73,10 +73,10 @@ func Test_Count(t *testing.T) {
 	require.Nil(t, err)
 
 	type Count struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Status       string `gorm:"type:varchar(50)"`
-		Priority     int    `gorm:"type:int"`
+		gorm.Model
+		Name     string `gorm:"type:varchar(255);not null"`
+		Status   string `gorm:"type:varchar(50)"`
+		Priority int    `gorm:"type:int"`
 	}
 	err = db.AutoMigrate(&Count{})
 	require.Nil(t, err)
@@ -161,10 +161,10 @@ func Test_Exist(t *testing.T) {
 	require.Nil(t, err)
 
 	type Exists struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Status       string `gorm:"type:varchar(50)"`
-		Priority     int    `gorm:"type:int"`
+		gorm.Model
+		Name     string `gorm:"type:varchar(255);not null"`
+		Status   string `gorm:"type:varchar(50)"`
+		Priority int    `gorm:"type:int"`
 	}
 	err = db.AutoMigrate(&Exists{})
 	require.Nil(t, err)
@@ -238,8 +238,8 @@ func Test_SoftDelete(t *testing.T) {
 	require.Nil(t, err)
 
 	type SoftDelete struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 
 	repo := sqlorm.Repository[SoftDelete]{DB: db}
@@ -487,10 +487,10 @@ func Test_FindAndCount(t *testing.T) {
 	require.Nil(t, err)
 
 	type FindAndCount struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
-		Status       string `gorm:"type:varchar(50)"`
-		Priority     int    `gorm:"type:int"`
+		gorm.Model
+		Name     string `gorm:"type:varchar(255);not null"`
+		Status   string `gorm:"type:varchar(50)"`
+		Priority int    `gorm:"type:int"`
 	}
 
 	err = db.AutoMigrate(&FindAndCount{})

@@ -5,12 +5,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tinh-tinh/sqlorm/v2"
+	"gorm.io/gorm"
 )
 
 func Test_Map(t *testing.T) {
 	type Todo struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null"`
+		gorm.Model
+		Name string `gorm:"type:varchar(255);not null"`
 	}
 
 	type CreateTodo struct {
@@ -71,8 +72,8 @@ func Test_Map(t *testing.T) {
 }
 
 type Abc struct {
-	sqlorm.Model `gorm:"embedded"`
-	Name         string `gorm:"type:varchar(255);not null"`
+	gorm.Model
+	Name string `gorm:"type:varchar(255);not null"`
 }
 
 func (Abc) RepositoryName() string {

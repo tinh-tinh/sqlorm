@@ -23,10 +23,10 @@ func Test_QueryBuilder(t *testing.T) {
 	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
 	type Documents struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255);not null;default:'Unnamed'"`
-		Status       string `gorm:"type:varchar(50);default:'inactive'"`
-		Priority     int    `gorm:"type:int;default:0"`
+		gorm.Model
+		Name     string `gorm:"type:varchar(255);not null;default:'Unnamed'"`
+		Status   string `gorm:"type:varchar(50);default:'inactive'"`
+		Priority int    `gorm:"type:int;default:0"`
 	}
 	err = db.AutoMigrate(&Documents{})
 	require.Nil(t, err)
@@ -185,9 +185,9 @@ func Test_IsValidColumn(t *testing.T) {
 	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
 	type TestEntity struct {
-		sqlorm.Model `gorm:"embedded"`
-		Name         string `gorm:"type:varchar(255)"`
-		Value        int    `gorm:"type:int"`
+		gorm.Model
+		Name  string `gorm:"type:varchar(255)"`
+		Value int    `gorm:"type:int"`
 	}
 	err = db.AutoMigrate(&TestEntity{})
 	require.Nil(t, err)
