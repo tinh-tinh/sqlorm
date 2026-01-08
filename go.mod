@@ -6,9 +6,9 @@ toolchain go1.24.1
 
 require (
 	github.com/stretchr/testify v1.9.0
-	github.com/tinh-tinh/tinhtinh/v2 v2.3.0
+	github.com/tinh-tinh/tinhtinh/v2 v2.4.1
 	gorm.io/driver/postgres v1.5.9
-	gorm.io/gorm v1.30.1
+	gorm.io/gorm v1.31.1
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
