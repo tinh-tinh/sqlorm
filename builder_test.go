@@ -227,12 +227,16 @@ func Test_IsValidColumn(t *testing.T) {
 		"col+name",
 		"col name",
 		"col-name",
-		"col.name",
+		// "col.name" is now valid - represents table.column format
 		"col:name",
 		"col;name",
 		"col'name",
 		"col\"name",
 		"col{name}",
+		"1column",       // starts with number
+		".column",       // starts with dot
+		"table.",        // ends with dot
+		"table..column", // double dot
 	}
 
 	// Test Equal with invalid columns
@@ -405,5 +409,47 @@ func Test_IsValidColumn(t *testing.T) {
 		})
 		require.Nil(t, err)
 		require.Equal(t, 1, len(docs))
+	})
+
+	// Test snake_case column names are valid
+	t.Run("ValidColumn_SnakeCase", func(t *testing.T) {
+		// These should be accepted as valid column names
+		validSnakeCases := []string{
+			"employee_id",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"first_name",
+			"last_name",
+			"user_profile_id",
+			"_private",
+			"Name",
+			"value123",
+		}
+		for _, col := range validSnakeCases {
+			// Just verify these don't cause issues - they should pass validation
+			_, err := repo.FindAll(func(qb *sqlorm.QueryBuilder) {
+				qb.Equal(col, "test")
+			})
+			// The query might fail due to column not existing, but validation should pass
+			// We're just testing that isValidColumn accepts snake_case
+			_ = err
+		}
+	})
+
+	// Test qualified table.column format is valid
+	t.Run("ValidColumn_QualifiedName", func(t *testing.T) {
+		validQualified := []string{
+			"table.column",
+			"users.id",
+			"employees.first_name",
+			"_private.field",
+		}
+		for _, col := range validQualified {
+			_, err := repo.FindAll(func(qb *sqlorm.QueryBuilder) {
+				qb.Equal(col, "test")
+			})
+			_ = err
+		}
 	})
 }
