@@ -2,11 +2,17 @@ package sqlorm
 
 import (
 	"reflect"
+	"regexp"
 	"strings"
 
-	"github.com/tinh-tinh/tinhtinh/v2/dto/validator"
 	"gorm.io/gorm"
 )
+
+// validColumnRegex matches valid SQL column names:
+// - Must start with a letter or underscore
+// - Can contain letters, numbers, and underscores
+// - Optionally allows table.column format
+var validColumnRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$`)
 
 type Query interface {
 	func(qb *QueryBuilder) | interface{}
@@ -164,5 +170,5 @@ func (q *QueryBuilder) Raw(sql string, values ...interface{}) *QueryBuilder {
 }
 
 func isValidColumn(column string) bool {
-	return validator.IsAlphanumeric(column)
+	return validColumnRegex.MatchString(column)
 }
